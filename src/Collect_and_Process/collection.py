@@ -14,7 +14,7 @@ class Data_Collection:
             Cache_path = Path(kg.dataset_download("samayashar/fraud-detection-transactions-dataset"))
 
             for csv_file in Cache_path.rglob('*.csv'):
-                target = Path_Install / csv_file.name
+                target = Path_Install / "Data.csv"
 
                 if target.exists():
                     target.chmod(target.stat().st_mode | stat.S_IWRITE)

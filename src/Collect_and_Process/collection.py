@@ -9,7 +9,6 @@ class Data_Collection:
     def Collection(self):
         try:
             Path_Install = config.Data_Dir
-            Path_Install.mkdir(parents=True, exist_ok=True)
 
             Cache_path = Path(kg.dataset_download("samayashar/fraud-detection-transactions-dataset"))
 

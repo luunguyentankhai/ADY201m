@@ -1,6 +1,10 @@
-def main():
-    print("Hello from adym!")
+from src.Collect_and_Process import collection
 
+class Main:
+    def __init__(self):
+        self.CL = collection.Data_Collection()
 
 if __name__ == "__main__":
-    main()
+    main = Main()
+    main.CL.Collection()
+

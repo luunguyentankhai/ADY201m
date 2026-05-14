@@ -1,6 +1,6 @@
 from pathlib import Path
 
-Base_Dir = Path(__file__).resolve().parent
+Base_Dir = Path(__file__).resolve().parent.parent.parent
 
 Data_Dir = Base_Dir / "data"
 

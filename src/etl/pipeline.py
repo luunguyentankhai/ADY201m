@@ -30,3 +30,7 @@ class DataPipeline:
         # ---
         self.db.upsert(df, table_name='transactions', pk_column="transaction_id")
 
+
+# TODO: làm tiền xử lý và gọi nó trong pipeline.py tên của file tiền xử lý là preprocessing
+
+

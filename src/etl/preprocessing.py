@@ -1,4 +1,6 @@
-  def Normalization(self):
+# TODO: sửa lại cái file preprocessing nha cái này để tạm thôi
+
+def Normalization(self):
         self.NA_Check()
         # Norm TimeStamp 
         self.df['Timestamp'] = pd.to_datetime(self.df['Timestamp'])

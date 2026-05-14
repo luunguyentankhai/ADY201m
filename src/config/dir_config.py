@@ -1,0 +1,19 @@
+from pathlib import Path
+
+Base_Dir = Path(__file__).resolve().parent
+
+Data_Dir = Base_Dir / "data"
+
+# check folder data have exist 
+Data_Dir.mkdir(parents=True, exist_ok=True)
+
+Process_Dir = Data_Dir / "processed"
+
+Raw_Dir = Data_Dir / "raw"
+
+# check folder Process and Raw have exist
+Process_Dir.mkdir(parents=True, exist_ok=True)
+Raw_Dir.mkdir(parents=True, exist_ok=True)
+
+
+Root_Data_File = Raw_Dir / "Data.csv"

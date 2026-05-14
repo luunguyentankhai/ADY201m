@@ -9,8 +9,38 @@
     - docker
 
 ## FOLDER STRUCTURE
-
-<strong>update later</strong>
+```
+.
+├── data
+│   ├── processed
+│   └── raw
+│       └── Data.csv
+├── docker-compose.yml
+├── docs
+│   └── notes.md
+├── main.py
+├── notebooks
+│   └── 01_pull_and_push.ipynb
+├── pyproject.toml
+├── README.md
+├── src
+│   ├── config
+│   │   ├── db_config.py
+│   │   ├── dir_config.py
+│   │   └── __init__.py
+│   ├── db
+│   │   ├── db_manager.py
+│   │   └── schema.sql
+│   ├── etl
+│   │   ├── cleaner.py
+│   │   ├── collect.py
+│   │   ├── __init__.py
+│   │   ├── pipeline.py
+│   │   └── preprocessing.py
+│   ├── __init__.py
+│   └── models
+└── uv.lock
+```
 
 ## SETUP REQUIREMENT
 

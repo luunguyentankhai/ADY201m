@@ -1,18 +1,28 @@
-import config
+from src.config import dir_config
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 class Pre:
     def __init__(self):
-        self.Data = config.Root_Data_File
+        self.Data = dir_config.Root_Data_File
         self.df = pd.read_csv(self.Data)
     
     def Read_info(self):
         print(self.df.info())
         print(self.df.head(5))
         print(self.df.tail(5))
-   
+
+    def NA_Check(self):
+        print(f"\n{'='*50}\n")
+        print("Counting NA in each colums")
+        print(self.df.isnull().sum())
+        print(f"\n{'='*50}\n")
+        print("Precenting % NA")
+        print((self.df.isnull().sum() / len(self.df)) *100)
+        print(f"\n{'='*50}\n")
+
     def Normalization(self):
+        self.NA_Check()
         # Norm TimeStamp 
         self.df['Timestamp'] = pd.to_datetime(self.df['Timestamp'])
 
@@ -36,7 +46,6 @@ class Pre:
 
         return self.df
 
-    def Imbalance_Check(self):
-        pass
+
 
 

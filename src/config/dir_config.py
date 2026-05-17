@@ -17,3 +17,5 @@ Raw_Dir.mkdir(parents=True, exist_ok=True)
 
 
 Root_Data_File = Raw_Dir / "Data.csv"
+
+sql_dir = Base_Dir / "src" / "db" / "sql_queries"

@@ -1,0 +1,21 @@
+SELECT 
+    transaction_amount,
+    account_balance,
+    daily_transaction_count,
+    avg_transaction_amount_7d,
+    failed_transaction_count_7d,
+    card_age,
+    transaction_distance,
+    risk_score,
+    ip_address_flag,
+    previous_fraudulent_activity,
+    is_weekend,
+    EXTRACT(HOUR FROM timestamp) AS feature_hour,
+    EXTRACT(DOW FROM timestamp) AS feature_day_of_week,
+    transaction_type,
+    device_type,
+    location,
+    merchant_category,
+    authentication_method,
+    fraud_label AS target
+FROM transactions;

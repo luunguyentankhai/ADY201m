@@ -11,6 +11,7 @@
 ## FOLDER STRUCTURE
 ```
 .
+├── CONTRIBUTING.md
 ├── data
 │   ├── processed
 │   └── raw
@@ -20,7 +21,8 @@
 │   └── notes.md
 ├── main.py
 ├── notebooks
-│   └── 01_pull_and_push.ipynb
+│   ├── 01_pull_and_push.ipynb
+│   └── 02_sql_and_eda.ipynb
 ├── pyproject.toml
 ├── README.md
 ├── src
@@ -29,8 +31,21 @@
 │   │   ├── dir_config.py
 │   │   └── __init__.py
 │   ├── db
+│   │   ├── analyzer.py
 │   │   ├── db_manager.py
-│   │   └── schema.sql
+│   │   ├── sql_queries
+│   │   │   ├── get_anomalies.sql
+│   │   │   ├── get_feature.sql
+│   │   │   ├── get_fraud_rate.sql
+│   │   │   ├── get_patterns.sql
+│   │   │   └── schema.sql
+│   │   └── utils.py
+│   ├── eda
+│   │   ├── barchart.py
+│   │   ├── boxplot.py
+│   │   ├── __init__.py
+│   │   ├── linechart.py
+│   │   └── matrix_corr.py
 │   ├── etl
 │   │   ├── cleaner.py
 │   │   ├── collect.py

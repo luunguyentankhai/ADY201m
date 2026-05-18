@@ -13,8 +13,8 @@
 | `ip_address_flag`              | Whether the IP address was flagged as suspicious (`0` or `1`)       |
 | `previous_fraudulent_activity` | Number of past fraudulent activities by the user                    |
 | `is_weekend`                   | Whether the transaction occurred on a weekend (`0` or `1`)          |
-| `feature_hour`                 | <!-- Write description here -->                                     |
-| `feature_day_of_week`          | <!-- Write description here -->                                     |
+| `feature_hour`                 | Time the transaction occured                                        |
+| `feature_day_of_week`          | Day of week (Monday to Sunday)                                      |
 | `transaction_type`             | Type of transaction (`Online`, `In-Store`, `ATM`, etc.)             |
 | `device_type`                  | Type of device used (`Mobile`, `Desktop`, etc.)                     |
 | `location`                     | Geographical location of the transaction                            |

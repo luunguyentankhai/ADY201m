@@ -1,63 +1,65 @@
 import pandas as pd
 import numpy as np
+from src.config.logs_config import setup_log, auto_logger
+from src.config.dir_config import Root_Data_File, Process_Dir
 
-def lower_columns_name(df):
-    
-    df.columns = df.columns.str.lower().str.replace(' ','_')
-    return df
+logger = setup_log(name="Data_Cleaner", filename="app")
 
-def format_datetime(df):
-    if "timestamp" in df.columns:
-        df["timestamp"] = pd.to_datetime(df["timestamp"], errors='coerce')
-    return df
+class DataCleaner:
+    def __init__(self, chunk_size=100000):
+        self.chunk_size = chunk_size
+        self.raw_path = Root_Data_File
+        self.Processed_path = Process_Dir / "Cleaned_Data.csv"
 
-def clean_text_data(df):
+        self.crit_cols = ['amount', 'nameOrig', 'nameDest', 'isFraud']
+        self.float_cols = ['amount', 'oldbalanceOrg', 'newbalanceOrig', 'oldbalanceDest', 'newbalanceDest']
 
-    str_cols = df.select_dtypes(include=["object", "string"]).columns
-
-    for col in str_cols:
-        df[col] = df[col].astype(str).str.strip()
-
-    return df
-
-def fix_check_missing(df):
-    
-    if df.isnull().sum().sum() == 0:
-        print("Data Clear")
+    def _clean_text_data(self, df):
+        str_cols = df.select_dtypes(include=["object", "string"]).columns
+        for col in str_cols:
+            df[col] = df[col].astype(str).str.strip()
         return df
 
-    print("Data have missing values")
+    def _process_chunk(self, chunk):
 
-    crit_cols = ['transaction_id', 'user_id', 'timestamp']
+        chunk = self._clean_text_data(chunk)
 
-    cols_check = [cols for cols in crit_cols if col in df.columns]
+        chunk = chunk.drop_duplicates()
 
-    before_drop = len(df)
-    df = df.dropna(subset=cols_check)
+        cols_check = [col for col in self.crit_cols if col in chunk.columns]
+        chunk = chunk.dropna(subset=cols_check)
 
-    if len(df) < before_drop:
-        print("Missing at Critical Columns")
+        if 'amount' in chunk.columns:
+            chunk = chunk[chunk['amount'] >= 0]
 
-    for col in df.columns:
-        if df[col].isnull().any():
+        return chunk
+    
+    @auto_logger(logger)
+    def run(self):
+        if not self.raw_path.exists():
+            raise FileNotFoundError(f"Raw data file not found at: {self.raw_path}")
 
-            # Numberic
+        if self.Processed_path.exists():
+            self.Processed_path.unlink()
+            logger.info("Deleted old Cleaned_Data.csv file.")
 
-            if pd.api.types.is_numeric_dtype(df[col]):
-                median_val = df[col].median()
+        logger.info("Starting data cleaning pipeline...")
+        
+        data_chunks = pd.read_csv(self.raw_path, chunksize=self.chunk_size)
+        total_raw_rows = 0
+        total_cleaned_rows = 0
 
-                df[col] = df[col].fillna(median_val)
+        for i, chunk in enumerate(data_chunks):
+            total_raw_rows += len(chunk)
 
-                print(f"Fixed: filling {median_val} of {col}")
+            clean_chunk = self._process_chunk(chunk)
 
-            # String/Category/Boolean
+            clean_chunk.to_csv(self.Processed_path, mode='a', index=False, header=(i == 0))
+            
+            total_cleaned_rows += len(clean_chunk)
+            logger.info(f"Processed {total_raw_rows:,} rows -> Retained {total_cleaned_rows:,} valid rows.")
 
-            else:
-
-                df[col] = df[col].fillna("Unknow")
-
-                print(f"Fixed: filling 'Unknow' of {col}")
-
-    print("Done process missing data")
-    return df
-
+        logger.info(f"Pipeline finished! Cleaned data saved to: {self.Processed_path}")
+        logger.info(f"Total rows dropped (Garbage/Duplicates): {total_raw_rows - total_cleaned_rows:,}")
+        
+        return self.Processed_path

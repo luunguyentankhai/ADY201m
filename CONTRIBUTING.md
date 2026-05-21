@@ -41,3 +41,26 @@ from src.db.utils import get_df
 
 print(get_df(fraud_label, conditions=1)
 ```
+
+# WRITE LOG
+
+## IMPORTANT
+
+**`logs_config`**: dùng để gọi hàm format cho log và hàm tự ghi log
+
+## For `logs_config.py`:
+
+### Chức năng:
+
+- dùng để ghi ra log và tự động khi log khi các func chạy tránh trường hợp lỗi ẩn
+
+### Sử dụng trong code:
+```
+from src.config.logs_config import setup_log, auto_logger
+
+logger = setup_log()
+
+Class<something>:
+    @auto_logger(logger)
+    def <something>:
+```

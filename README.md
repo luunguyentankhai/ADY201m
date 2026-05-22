@@ -1,5 +1,9 @@
 # Fraud Detection in Online Payment Transactions
 
+## NOTE
+
+- All team members must log the completion time of each task into the `notes.md` file inside the `docs/` folder immediately upon finishing
+
 ## SPEC
 
 - Project using python version 3.11 and postgresql:15
@@ -20,40 +24,34 @@
 ├── docs
 │   └── notes.md
 ├── main.py
-├── notebooks
+├── notebooks <-- Jupyter notebooks for EDA and output result
 │   ├── 01_pull_and_push.ipynb
 │   └── 02_sql_and_eda.ipynb
 ├── pyproject.toml
 ├── README.md
-├── src
-│   ├── config
+├── src <-- Main src code dir
+│   ├── config <-- Configuration variables and settings
 │   │   ├── db_config.py
 │   │   ├── dir_config.py
 │   │   └── __init__.py
-│   ├── db
-│   │   ├── analyzer.py
+│   ├── db <-- DB connections and operations
+│   │   ├── analyzer.py 
 │   │   ├── db_manager.py
-│   │   ├── sql_queries
+│   │   ├── sql_queries <-- SQL files for DB queries
 │   │   │   ├── get_anomalies.sql
 │   │   │   ├── get_feature.sql
 │   │   │   ├── get_fraud_rate.sql
 │   │   │   ├── get_patterns.sql
 │   │   │   └── schema.sql
 │   │   └── utils.py
-│   ├── eda
-│   │   ├── barchart.py
-│   │   ├── boxplot.py
-│   │   ├── __init__.py
-│   │   ├── linechart.py
-│   │   └── matrix_corr.py
-│   ├── etl
+│   ├── etl <-- Data extract, cleaning, and preprocessing
 │   │   ├── cleaner.py
 │   │   ├── collect.py
 │   │   ├── __init__.py
 │   │   ├── pipeline.py
 │   │   └── preprocessing.py
 │   ├── __init__.py
-│   └── models
+│   └── models <-- ML models and evaluation
 └── uv.lock
 ```
 

@@ -352,3 +352,75 @@ The below column reference:
 
 - **Monitoring high-risk transaction types and large transactions can improve fraud detection.**  
   **Theo dõi các loại giao dịch rủi ro cao và giao dịch giá trị lớn có thể cải thiện khả năng phát hiện gian lận.**
+
+---
+
+# FINE-TUNING PARAMETERS
+
+## Logistic Regression
+
+| Tham số        | Ý nghĩa                |
+| -------------- | ---------------------- |
+| `C`            | Độ regularization      |
+| `penalty`      | Regularization L1 / L2 |
+| `solver`       | Thuật toán tối ưu      |
+| `class_weight` | Xử lý imbalance        |
+| `max_iter`     | Số vòng lặp train      |
+
+---
+
+## Random Forest
+
+| Tham số             | Ý nghĩa              |
+| ------------------- | -------------------- |
+| `n_estimators`      | Số lượng cây         |
+| `max_depth`         | Độ sâu tối đa        |
+| `min_samples_split` | Minimum split        |
+| `min_samples_leaf`  | Minimum leaf         |
+| `max_features`      | Số feature mỗi split |
+| `class_weight`      | Xử lý imbalance      |
+
+---
+
+## XGBoost
+
+| Tham số            | Ý nghĩa              |
+| ------------------ | -------------------- |
+| `n_estimators`     | Số boosting rounds   |
+| `learning_rate`    | Tốc độ học           |
+| `max_depth`        | Độ sâu cây           |
+| `subsample`        | Sampling dòng        |
+| `colsample_bytree` | Sampling feature     |
+| `gamma`            | Regularization split |
+| `min_child_weight` | Minimum child weight |
+| `scale_pos_weight` | Xử lý imbalance      |
+
+---
+
+## LightGBM
+
+| Tham số             | Ý nghĩa               |
+| ------------------- | --------------------- |
+| `n_estimators`      | Số cây                |
+| `learning_rate`     | Tốc độ học            |
+| `num_leaves`        | Số leaf               |
+| `max_depth`         | Độ sâu cây            |
+| `min_child_samples` | Minimum child samples |
+| `subsample`         | Sampling dòng         |
+| `colsample_bytree`  | Sampling feature      |
+| `reg_alpha`         | Regularization L1     |
+| `reg_lambda`        | Regularization L2     |
+
+---
+
+## CatBoost
+
+| Tham số               | Ý nghĩa            |
+| --------------------- | ------------------ |
+| `iterations`          | Số boosting rounds |
+| `learning_rate`       | Tốc độ học         |
+| `depth`               | Độ sâu cây         |
+| `l2_leaf_reg`         | Regularization     |
+| `bagging_temperature` | Độ ngẫu nhiên      |
+| `border_count`        | Số split           |
+| `auto_class_weights`  | Xử lý imbalance    |

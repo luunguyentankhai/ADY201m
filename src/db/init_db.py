@@ -9,7 +9,11 @@ from src.db.db_manager import PostgresManager
 logger = setup_log(name="DB_init", filename="DataBase")
 
 @auto_logger(logger)
+<<<<<<< Updated upstream
 def initialize_and_seed(table_name="Online_Payments_Fraud_Detection_Dataset",
+=======
+def initialize_and_seed(table_name="fraud_detection",
+>>>>>>> Stashed changes
                         chunk_size=50000, 
                         force_reset=True,
                         data_src=Root_Data_File

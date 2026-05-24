@@ -14,20 +14,52 @@ class DataCleaner:
         self.crit_cols = ['amount', 'nameOrig', 'nameDest', 'isFraud']
         self.float_cols = ['amount', 'oldbalanceOrg', 'newbalanceOrig', 'oldbalanceDest', 'newbalanceDest']
 
+    def _lower_columns_name(self, df):
+        rename_map = {
+            'nameOrig': 'name_orig',
+            'oldbalanceOrg': 'oldbalance_orig',
+            'newbalanceOrig': 'newbalance_orig',
+            'nameDest': 'name_dest',
+            'oldbalanceDest': 'oldbalance_dest',
+            'newbalanceDest': 'newbalance_dest',
+            'isFraud': 'is_fraud',
+            'isFlaggedFraud': 'isflaggedfraud'
+        }
+        df = df.rename(columns=rename_map)
+        df.columns = df.columns.str.lower()
+        return df
+
     def _clean_text_data(self, df):
         str_cols = df.select_dtypes(include=["object", "string"]).columns
         for col in str_cols:
             df[col] = df[col].astype(str).str.strip()
         return df
 
+    def _handle_duplicates(self, df):
+        dup_count = df.duplicated().sum()
+        if dup_count > 0:
+            logger.warning(f"Found {dup_count} duplicate row. Deleting...")
+            df = df.drop_duplicates()
+        return df
+
+    def _handle_missing_values(self, df):
+        if df.isna().sum().sum() > 0:
+            cols_check = [col for col in self.crit_cols if col in df.columns]
+            df = df.dropna(subset=cols_check)
+            
+            cols_fill = [col for col in self.float_cols if col in df.columns]
+            df[cols_fill] = df[cols_fill].fillna(0)
+        return df
+
     def _process_chunk(self, chunk):
+        
+        chunk = self._lower_columns_name(chunk)
 
         chunk = self._clean_text_data(chunk)
 
-        chunk = chunk.drop_duplicates()
+        chunk = self._handle_duplicates(chunk)
 
-        cols_check = [col for col in self.crit_cols if col in chunk.columns]
-        chunk = chunk.dropna(subset=cols_check)
+        chunk = self._handle_missing_values(chunk)
 
         if 'amount' in chunk.columns:
             chunk = chunk[chunk['amount'] >= 0]

@@ -43,7 +43,7 @@ class DataPipeline:
 
             logger.info(f"Pushing data to DB")
             total_row = initialize_and_seed(
-                    table_name="Online_Payments_Fraud_Detection_Dataset",
+                    table_name="fraud_detection",
                     chunk_size=100000,
                     force_reset=True,
                     data_src=cleaning
@@ -55,6 +55,5 @@ class DataPipeline:
             raise
         
 
-# TODO: làm tiền xử lý và gọi nó trong pipeline.py tên của file tiền xử lý là preprocessing
 
 

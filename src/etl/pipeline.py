@@ -6,20 +6,7 @@ from src.db.init_db import initialize_and_seed
 
 logger = setup_log(name="Main_Pipeline", filename="app")
 
-class DataPipeline:
-    def __init__(self):
-        self.rawpath = dir_config.Root_Data_File
-        self.df = pd.read_csv(self.rawpath)
-    
-    @auto_logger(logger)
-    def Pre_read(self, df):
-        print(df.head(10))
-        print(f"{'='*50}")
-        print(df.tail(10))
-        print(f"{'='*50}")
-        print(df.info())
-        print(f"{'='*50}")
-    
+class DataPipeline:    
     @auto_logger(logger)
     def Cleaning(self):
         logger.info(f"Cleaning Data...")
@@ -31,11 +18,6 @@ class DataPipeline:
 
     @auto_logger(logger)
     def Run_Pipeline(self):
-
-        # ===
-        df = self.df
-        self.Pre_read(df)
-        
         # ===
         logger.info(f"Starting Pull and Push data")
         try:

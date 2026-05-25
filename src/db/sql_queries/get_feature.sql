@@ -1,21 +1,28 @@
+DROP VIEW IF EXISTS vw_model_features;
+
+CREATE VIEW vw_model_features AS
 SELECT 
-    transaction_amount,
-    account_balance,
-    daily_transaction_count,
-    avg_transaction_amount_7d,
-    failed_transaction_count_7d,
-    card_age,
-    transaction_distance,
-    risk_score,
-    ip_address_flag,
-    previous_fraudulent_activity,
-    is_weekend,
-    EXTRACT(HOUR FROM timestamp) AS feature_hour,
-    EXTRACT(DOW FROM timestamp) AS feature_day_of_week,
-    transaction_type,
-    device_type,
-    location,
-    merchant_category,
-    authentication_method,
-    fraud_label AS target
-FROM transactions;
+    step,
+    COALESCE(amount, 0) AS amount,
+    COALESCE(oldbalance_orig, 0) AS oldbalance_orig,
+    COALESCE(newbalance_orig, 0) AS newbalance_orig,
+    COALESCE(oldbalance_dest, 0) AS oldbalance_dest,
+    COALESCE(newbalance_dest, 0) AS newbalance_dest,
+    
+    hour_of_day,
+    day_of_month,
+    
+    CASE WHEN type = 'CASH_OUT' THEN 1 ELSE 0 END AS type_cash_out,
+    CASE WHEN type = 'DEBIT' THEN 1 ELSE 0 END AS type_debit,
+    CASE WHEN type = 'PAYMENT' THEN 1 ELSE 0 END AS type_payment,
+    CASE WHEN type = 'TRANSFER' THEN 1 ELSE 0 END AS type_transfer,
+    
+    CASE WHEN COALESCE(newbalance_orig, 0) = 0 THEN 1 ELSE 0 END AS is_orig_empty_after,
+    CASE WHEN COALESCE(oldbalance_dest, 0) = 0 THEN 1 ELSE 0 END AS is_dest_empty_before,
+    CASE WHEN COALESCE(amount, 0) = 0 THEN 1 ELSE 0 END AS is_amount_zero,
+    (COALESCE(oldbalance_orig, 0) - COALESCE(amount, 0) - COALESCE(newbalance_orig, 0)) AS error_balance_orig,
+    (COALESCE(oldbalance_dest, 0) + COALESCE(amount, 0) - COALESCE(newbalance_dest, 0)) AS error_balance_dest,
+    
+    is_fraud
+FROM 
+    fraud_detection;

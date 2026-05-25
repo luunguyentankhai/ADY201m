@@ -1,10 +1,19 @@
-SELECT
-    device_type,
-    location,
-    COUNT(*) AS total_txns,
-    SUM(fraud_label) AS fraud_txns,
-    ROUND(AVG(fraud_label) * 100,2) AS fraud_rate_percentage
-FROM transactions
-GROUP BY device_type, location
-HAVING COUNT(*) > 10
-ORDER BY fraud_rate_percentage DESC;
+SELECT 
+    day_of_month,
+    hour_of_day,
+    type AS transaction_type, 
+    COUNT(id) AS total_transactions,
+    SUM(is_fraud) AS fraud_transactions,
+    ROUND((SUM(is_fraud) * 100.0) / COUNT(id), 4) AS fraud_rate_pct
+
+FROM 
+    fraud_detection
+
+GROUP BY 
+    day_of_month,
+    hour_of_day,
+    type
+
+ORDER BY 
+    fraud_rate_pct DESC,
+    fraud_transactions DESC;

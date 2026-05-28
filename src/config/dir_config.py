@@ -1,3 +1,4 @@
+from os.path import exists
 from pathlib import Path
 
 Base_Dir = Path(__file__).resolve().parent.parent.parent
@@ -26,3 +27,5 @@ logs_dir.mkdir(parents=True,exist_ok=True)
 Assets_Dir = Process_Dir / "Assets"
 Assets_Dir.mkdir(parents=True, exist_ok=True)
 
+Models_Dir = Process_Dir / "Models"
+Models_Dir.mkdir(parents=True, exist_ok=True)

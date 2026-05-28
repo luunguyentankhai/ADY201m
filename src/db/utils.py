@@ -1,26 +1,19 @@
-from src.config.db_config import db_engine
 import pandas as pd
-from sqlalchemy import text
+from src.config import db_config
+from src.config.logs_config import setup_log, auto_logger
 
-def get_df(columns, conditions=None, table_name="transactions"):
-    engine = db_engine()
+logger = setup_log(name="DB_Manager", filename="DataBase")
 
-    if columns == "*" or columns==["*"]:
-        cols_str = "*"
-    else:
-        cols_str = ", ".join(columns)
-
-    query= f"SELECT {cols_str} FROM {table_name}"
-
-    if conditions:
-
-        query+= f"WHERE {conditions}"
-
+@auto_logger(logger)
+def fetch_feature_store():
+    """Extracts the entire Feature Store from PostgreSQL."""
+    logger.info("Connecting to PostgreSQL to fetch vw_model_features...")
+    engine = db_config.db_engine()
+    
     try:
-        
-        df = pd.read_sql(text(query), con=engine)
+        df = pd.read_sql("SELECT * FROM vw_model_features", con=engine)
+        logger.info(f"Successfully loaded dataset. Shape: {df.shape}")
         return df
     except Exception as e:
-        print(f"ERROR: {e}")
+        logger.error(f"Database connection or query failed: {e}")
         return None
-

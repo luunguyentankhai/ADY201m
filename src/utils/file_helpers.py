@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from src.config.logs_config import setup_log, auto_logger
 from pathlib import Path
 
-logger = setup_log(name="File Helper", filename="app")
+logger = setup_log(name="File Helper", filename="utils")
 
 @auto_logger(logger)
 def show_img_exists(filepath, size):

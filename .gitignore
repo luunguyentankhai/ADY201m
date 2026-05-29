@@ -1,14 +1,36 @@
-# Python-generated files
+# OS & IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Python & Build
 __pycache__/
-data/
 *.py[oc]
 build/
 dist/
 wheels/
 *.egg-info
+*.csv
 
-# Virtual environments
+# Virtual Env
 .venv
 .env
 
+# Data & Models
+data/
+logs/*
+tempfile/
+catboost_info/
+*.pkl
+*.h5
+*.joblib
+
+# Specific Files
 main.py
+
+# Frontend (Web/pnpm)
+node_modules/
+web/frontend/dist/
+web/frontend/build/
+npm-debug.log*
+pnpm-debug.log*

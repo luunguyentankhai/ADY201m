@@ -19,7 +19,7 @@ wheels/
 # Data & Models
 data/
 logs/*
-tempfile/
+temp_file/
 preprocessing/*
 catboost_info/
 *.pkl

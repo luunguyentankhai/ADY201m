@@ -20,7 +20,6 @@ wheels/
 data/
 logs/*
 temp_file/
-preprocessing/*
 catboost_info/
 *.pkl
 *.h5

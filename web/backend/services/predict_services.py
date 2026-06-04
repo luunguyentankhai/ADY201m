@@ -11,9 +11,8 @@ class PredictService:
             logger.info(f"Read CSV on buffer")
             df = pd.read_csv(io.BytesIO(file_content))
 
-            # TODO: làm sau khi xong frontend
-            # logger.info(f"Calculating EDA")
-            # eda_result = self._excute_eda(df)
+            logger.info(f"Calculating EDA")
+            eda_result = self._excute_eda(df)
 
             logger.info(f"Preprocessing")
             X_ready = self._excute_preprocessing(df)
@@ -37,16 +36,138 @@ class PredictService:
                         "fraud_detected": fraud_count,
                         "fraud_rate_percent": round(fraud_rate,2)
                     },
-                    # "eda_data": eda_results
+                    "eda_data": eda_result
                 }
 
         except Exception as e:
             logger.error(f"[PredictService] Error: {str(e)}")
             raise e
 
-    # def _excute_eda(self, df: pd.DataFrame) -> dict:
-    #     pass
+    def _excute_eda(self, df: pd.DataFrame) -> dict:
+        logger.info("Extracing EDA")
+
+        eda_dict = {}
+
+        target_col = 'isFraud' if 'isFraud' in df.columns else 'if_fraud' if 'is_fraud' in df.columns else None
+        
+        # TODO: mixed charts (bar + line) Khối lượng và tỉ lệ lừa đảo theo giao dịch
+        if 'type' in df.columns:
+            logger.info(f"Volume vs Fraud Rate by transaction")
+            if target_col:
+                grouped_type = df.groupby('type').agg(
+                        total_volume=(target_col, 'count'),
+                        fraud_case=(target_col, 'sum')
+                        )
+                grouped_type['fraud_rate']=(grouped_type['fraud_case'] / grouped_type['total_volume']) * 100
+                eda_dict['mixed_volume_vs_rate']= {
+                        "categories": grouped_type.index.tolist(),
+                        "volume_bar": grouped_type['total_volume'].tolist(),
+                        "rate_line": grouped_type['fraud_case'].round(2).tolist()
+                        }
+            else:
+                type_counts=df['type'].value_counts()
+                eda_dict['mixed_volume_vs_rate']={
+                        "categories": type_counts.index.tolist(),
+                        "volume_bar": type_counts.tolist(),
+                        "rate_line": [0] * len(type_counts)
+                        }
+
+
+        # TODO: stacked bar chart phân bố dải tiền và mật độ lừa đảo
+
+        if 'amount' in df.columns:
+            logger.info("Amount ranges vs Fraud density")
+            bins = [-1, 10000, 100000, 500000, float('inf')]
+            labels = ['<10K', '10K - 100K', '100K - 500K', '>500K']
     
+            df_temp = df.copy()
+            df_temp['amount_range'] = pd.cut(df_temp['amount'], bins=bins, labels=labels)
+            
+            if target_col:
+                grouped_amt = df_temp.groupby('amount_range', observed=False).agg(
+                    total=(target_col, 'count'),
+                    fraud=(target_col, 'sum')
+                )
+                grouped_amt['normal'] = grouped_amt['total'] - grouped_amt['fraud']
+                eda_dict['stacked_amount_ranges'] = {
+                    "categories": labels,
+                    "normal_tx": grouped_amt['normal'].tolist(),
+                    "fraud_tx": grouped_amt['fraud'].tolist()
+                }
+            else:
+                amt_counts = df_temp['amount_range'].value_counts(sort=False)
+                eda_dict['stacked_amount_ranges'] = {
+                    "categories": labels,
+                    "normal_tx": amt_counts.tolist(),
+                    "fraud_tx": [0] * len(labels)
+                }
+
+        # TODO: multi-line chart hoạt động giao dịch theo giờ
+        if 'step' in df.columns:
+            logger.info("Hourly activity distribution")
+            df_temp = df.copy()
+            df_temp['hour'] = df_temp['step'] % 24
+            
+
+            if target_col:
+                grouped_hour = df_temp.groupby('hour').agg(
+                    total=(target_col, 'count'),
+                    fraud=(target_col, 'sum')
+                )
+                grouped_hour['normal'] = grouped_hour['total'] - grouped_hour['fraud']
+                
+                # Đảm bảo luôn đủ 24 giờ kể cả khi không có dữ liệu tại khung giờ đó
+                full_hours = pd.DataFrame(index=range(24))
+                grouped_hour = full_hours.join(grouped_hour).fillna(0)
+                
+                eda_dict['multi_line_hourly'] = {
+                    "hours": list(range(24)),
+                    "normal_activity": grouped_hour['normal'].tolist(),
+                    "fraud_activity": grouped_hour['fraud'].tolist()
+                }
+            else:
+                hour_counts = df_temp['hour'].value_counts().sort_index()
+                full_hours = pd.Series(0, index=range(24))
+                full_hours.update(hour_counts)
+                eda_dict['multi_line_hourly'] = {
+                    "hours": list(range(24)),
+                    "normal_activity": full_hours.tolist(),
+                    "fraud_activity": [0] * 24
+                }
+
+        # TODO: Donut chart phân tích hành vi làm trống số dư
+        col_new_bal = 'newbalanceOrig' if 'newbalanceOrig' in df.columns else 'newbalance_orig'
+        if col_new_bal in df.columns:
+            logger.info(f"Analyzing zero-balance behavior on origin accounts")
+            zero_count = int((df[col_new_bal] == 0).sum())
+            non_zero_count = int((df[col_new_bal] != 0).sum())
+            eda_dict['zero_balance_behavior'] = {
+                "Account_Empty": zero_count,
+                "Account_Has_Money": non_zero_count
+            }
+
+        # TODO: Bar chart bất cân đối kế toán
+        col_old_bal = 'oldbalanceOrg' if 'oldbalanceOrg' in df.columns else 'oldbalance_orig'
+        if all(c in df.columns for c in ['amount', col_old_bal, col_new_bal]):
+            logger.info(f"Detecting accounting anomalies based on balance changes")
+            error_margin = (df[col_old_bal] - df[col_new_bal]) - df['amount']
+            anomalies_count = int((error_margin.round(2) != 0).sum())
+            normal_count = int(len(df) - anomalies_count)
+            
+            eda_dict['accounting_anomalies'] = {
+                "Perfect_Math": normal_count,
+                "Suspicious_Anomaly": anomalies_count
+            }
+
+        eda_dict['summary'] = {
+            "total_rows": len(df),
+            "total_volume": float(df['amount'].sum()) if 'amount' in df.columns else 0.0
+        }
+
+        logger.info(f"XONG")
+        return eda_dict
+            
+
     def _excute_preprocessing(self, df: pd.DataFrame) -> pd.DataFrame:
         df_clean = df.copy()
         df_clean = self.__cleaning(df_clean)

@@ -59,7 +59,7 @@ def main():
     try:
 
         if is_windows:
-            backend_cmd = "uv run python startup_app.py"
+            backend_cmd = "uv run start_app.py"
         else:
             backend_cmd = ["uv", "run", "python", "startup_app.py"]
             

@@ -2,7 +2,7 @@ from fastapi import UploadFile, HTTPException
 from web.backend.services.predict_services import predict_service
 
 ALLOWED_EXTENSIONS = [".csv"]
-MAX_FILE_SIZE = 30
+MAX_FILE_SIZE = 300
 
 MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE * 1024 * 1024
 

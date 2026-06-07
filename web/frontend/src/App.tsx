@@ -18,12 +18,26 @@ interface PredictionResult {
 
 export default function Rain() {
   const [clicked, setClicked] = useState(false);
+  const [activeTab, setActiveTab] = useState<'analysis'|'transaction'>('analysis');
   const [fileName, setFileName] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<"idle" | "success" | "error">("idle");
   const [statusMessage, setStatusMessage] = useState("");
   const [predictions, setPredictions] = useState<PredictionResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Transaction form state
+  const [txForm, setTxForm] = useState({
+    amount: '',
+    nameOrig: '',
+    oldBalanceOrig: '',
+    newBalanceOrig: '',
+    nameDest: '',
+    oldBalanceDest: '',
+    newBalanceDest: '',
+    type: 'Transfer'
+  });
+  const [txMessage, setTxMessage] = useState<string | null>(null);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -86,6 +100,30 @@ export default function Rain() {
     }
   };
 
+  const handleTxChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setTxForm((s) => ({ ...s, [name]: value }));
+  };
+
+  const handleTxSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    // basic validation
+    const payload = {
+      amount: Number(txForm.amount) || 0,
+      nameOrig: txForm.nameOrig,
+      oldBalanceOrig: Number(txForm.oldBalanceOrig) || 0,
+      newBalanceOrig: Number(txForm.newBalanceOrig) || 0,
+      nameDest: txForm.nameDest,
+      oldBalanceDest: Number(txForm.oldBalanceDest) || 0,
+      newBalanceDest: Number(txForm.newBalanceDest) || 0,
+      type: txForm.type
+    };
+
+    console.log('Transaction submitted', payload);
+    setTxMessage('Transaction entered (see console).');
+    // keep it local; if you want to POST to backend, replace this with fetch.
+  };
+
   // Chart rendering functions
   const getMixedVolumeVsRateChart = (data: Record<string, unknown>): EChartsOption | null => {
     const mixed = data.mixed_volume_vs_rate as {
@@ -128,15 +166,35 @@ export default function Rain() {
   const getStackedAmountRangesChart = (data: Record<string, unknown>): EChartsOption | null => {
     const stacked = data.stacked_amount_ranges as {
       categories: string[];
-      normal_tx: number[];
-      fraud_tx: number[];
-    };
+      normal_tx?: number[];
+      fraud_tx?: number[];
+      normal_percent?: number[];
+      fraud_percent?: number[];
+    } | undefined;
 
     if (!stacked) return null;
 
+    // prefer counts for stacked bars, but expose percents in tooltip
+    const normal = stacked.normal_tx ?? [];
+    const fraud = stacked.fraud_tx ?? [];
+
     return {
       title: { text: "Transaction Distribution by Amount Range" },
-      tooltip: { trigger: "axis" },
+      tooltip: {
+        trigger: "axis",
+        formatter: (params: any) => {
+          // params is an array of series entries
+          const lines = params.map((p: any) => {
+            const name = p.seriesName;
+            const val = p.value;
+            const idx = p.dataIndex;
+            const percentArr = name === "Normal Transactions" ? stacked.normal_percent : stacked.fraud_percent;
+            const percent = percentArr ? ` (${percentArr[idx]}%)` : "";
+            return `${name}: ${val}${percent}`;
+          });
+          return params[0].axisValue + "<br/>" + lines.join("<br/>");
+        },
+      },
       legend: { data: ["Normal Transactions", "Fraudulent Transactions"] },
       xAxis: { type: "category", data: stacked.categories },
       yAxis: { type: "value" },
@@ -144,14 +202,14 @@ export default function Rain() {
         {
           name: "Normal Transactions",
           type: "bar",
-          data: stacked.normal_tx,
+          data: normal,
           stack: "total",
           itemStyle: { color: "#91cc75" },
         },
         {
           name: "Fraudulent Transactions",
           type: "bar",
-          data: stacked.fraud_tx,
+          data: fraud,
           stack: "total",
           itemStyle: { color: "#ee6666" },
         },
@@ -159,41 +217,116 @@ export default function Rain() {
     };
   };
 
-  const getHourlyActivityChart = (data: Record<string, unknown>): EChartsOption | null => {
-    const hourly = data.multi_line_hourly as {
-      hours: number[];
-      normal_activity: number[];
-      fraud_activity: number[];
-    };
+  const getCorrelationHeatmapChart = (data: Record<string, unknown>): EChartsOption | null => {
+    const corr = data.correlation_matrix as {
+      categories: string[];
+      heatmap_data: Array<[number, number, number]>;
+    } | undefined;
 
-    if (!hourly) return null;
+    if (!corr) return null;
 
     return {
-      title: { text: "Hourly Transaction Activity" },
-      tooltip: { trigger: "axis" },
-      legend: { data: ["Normal Activity", "Fraudulent Activity"] },
-      xAxis: { type: "category", data: hourly.hours.map((h) => `${h}:00`) },
-      yAxis: { type: "value" },
+      title: { text: "Correlation Matrix" },
+      tooltip: {
+        position: 'top',
+        formatter: (params: any) => {
+          const v = Array.isArray(params.value) ? params.value[2] : params.value;
+          if (v === null || v === undefined || Number.isNaN(v)) return '';
+          // params.value is [xIndex, yIndex, value]
+          if (Array.isArray(params.value)) {
+            const xIdx = params.value[0];
+            const yIdx = params.value[1];
+            const xName = corr.categories?.[xIdx] ?? xIdx;
+            const yName = corr.categories?.[yIdx] ?? yIdx;
+            return `${xName} × ${yName}<br/>${(Math.round(Number(v) * 1000) / 1000).toString()}`;
+          }
+          return (Math.round(Number(v) * 1000) / 1000).toString();
+        }
+      },
+      grid: { height: '70%', top: '10%' },
+      xAxis: {
+        type: 'category',
+        data: corr.categories,
+        splitArea: { show: true }
+      },
+      yAxis: {
+        type: 'category',
+        data: corr.categories,
+        splitArea: { show: true }
+      },
+      visualMap: {
+        min: -1,
+        max: 1,
+        calculable: true,
+        orient: 'horizontal',
+        left: 'center',
+        top: '5%'
+      },
       series: [
         {
-          name: "Normal Activity",
-          type: "line",
-          data: hourly.normal_activity,
-          smooth: true,
-          itemStyle: { color: "#5470c6" },
-          areaStyle: { color: "rgba(84, 112, 198, 0.3)" },
-        },
-        {
-          name: "Fraudulent Activity",
-          type: "line",
-          data: hourly.fraud_activity,
-          smooth: true,
-          itemStyle: { color: "#ee6666" },
-          areaStyle: { color: "rgba(238, 102, 102, 0.3)" },
-        },
-      ],
+          name: 'correlation',
+          type: 'heatmap',
+          data: corr.heatmap_data as any,
+          label: {
+            show: true,
+            formatter: (params: any) => {
+              const v = Array.isArray(params.value) ? params.value[2] : params.value;
+              if (v === null || v === undefined || Number.isNaN(v)) return '';
+              return (Math.round(Number(v) * 1000) / 1000).toString();
+            },
+            color: '#000',
+            fontSize: 12
+          },
+          emphasis: { itemStyle: { borderColor: '#333', borderWidth: 1 } }
+        }
+      ]
     };
   };
+
+  const getClassDistributionChart = (data: Record<string, unknown>): EChartsOption | null => {
+    const dist = data.class_distribution as Record<string, number> | undefined;
+    if (!dist) return null;
+    const chartData = Object.entries(dist).map(([name, value]) => ({ name, value }));
+
+    return {
+      title: { text: 'Class Distribution' },
+      tooltip: { trigger: 'item' },
+      legend: { orient: 'vertical', left: 'left' },
+      series: [
+        {
+          name: 'Class',
+          type: 'pie',
+          radius: '55%',
+          data: chartData,
+          emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0,0,0,0.5)' } }
+        }
+      ]
+    };
+  };
+
+  const getLogBalanceSegmentChart = (data: Record<string, unknown>): EChartsOption | null => {
+    const seg = data.log_balance_segment as {
+      categories: string[];
+      non_fraud: number[];
+      fraud: number[];
+    } | undefined;
+
+    if (!seg) return null;
+
+    return {
+      title: { text: 'Balance Segment (Log Scale)' },
+      tooltip: { trigger: 'axis' },
+      legend: { data: ['Non-fraud', 'Fraud'] },
+      xAxis: { type: 'category', data: seg.categories },
+      yAxis: { type: 'log' },
+      series: [
+        { name: 'Non-fraud', type: 'bar', data: seg.non_fraud, itemStyle: { color: '#5470c6' } },
+        { name: 'Fraud', type: 'bar', data: seg.fraud, itemStyle: { color: '#ee6666' } }
+      ]
+    };
+  };
+
+  
 
   const getZeroBalanceChart = (data: Record<string, unknown>): EChartsOption | null => {
     const zeroBalance = data.zero_balance_behavior as Record<string, number>;
@@ -255,56 +388,211 @@ export default function Rain() {
     };
   };
 
+  const getHourlyActivityChart = (data: Record<string, unknown>): EChartsOption | null => {
+    // Support two backend shapes:
+    // 1) `multi_line_hourly` with hours, normal_activity, fraud_activity (two lines)
+    // 2) `hourly_volume_bar` + `hourly_fraud_rate_line` (bar + rate line, dual axis)
+    const multi = data.multi_line_hourly as {
+      hours: number[];
+      normal_activity: number[];
+      fraud_activity: number[];
+    } | undefined;
+
+    if (multi) {
+      return {
+        title: { text: "Hourly Transaction Activity" },
+        tooltip: { trigger: "axis" },
+        legend: { data: ["Normal Activity", "Fraudulent Activity"] },
+        xAxis: { type: "category", data: multi.hours.map((h) => `${h}:00`) },
+        yAxis: { type: "value" },
+        series: [
+          {
+            name: "Normal Activity",
+            type: "line",
+            data: multi.normal_activity,
+            smooth: true,
+            itemStyle: { color: "#5470c6" },
+            areaStyle: { color: "rgba(84, 112, 198, 0.3)" },
+          },
+          {
+            name: "Fraudulent Activity",
+            type: "line",
+            data: multi.fraud_activity,
+            smooth: true,
+            itemStyle: { color: "#ee6666" },
+            areaStyle: { color: "rgba(238, 102, 102, 0.3)" },
+          },
+        ],
+      };
+    }
+
+    const vol = data.hourly_volume_bar as {
+      hours: number[];
+      volume: number[];
+    } | undefined;
+    const rate = data.hourly_fraud_rate_line as {
+      hours: number[];
+      rate: number[];
+    } | undefined;
+
+    if (vol && rate) {
+      return {
+        title: { text: "Hourly Volume and Fraud Rate" },
+        tooltip: { trigger: 'axis' },
+        legend: { data: ['Volume', 'Fraud Rate (%)'] },
+        xAxis: { type: 'category', data: vol.hours.map((h) => `${h}:00`) },
+        yAxis: [
+          { type: 'value', name: 'Volume' },
+          { type: 'value', name: 'Fraud Rate (%)', position: 'right' }
+        ],
+        series: [
+          { name: 'Volume', type: 'bar', data: vol.volume, yAxisIndex: 0, itemStyle: { color: '#5470c6' } },
+          { name: 'Fraud Rate (%)', type: 'line', data: rate.rate, yAxisIndex: 1, smooth: true, itemStyle: { color: '#ee6666' } }
+        ]
+      };
+    }
+
+    return null;
+  };
+
+  // derive a stable summary object from backend shapes
+  const deriveSummary = (pred: PredictionResult | null) => {
+    if (!pred) return null;
+    const eda = (pred.data as any).eda_data ?? {};
+    const s = (pred.data as any).summary ?? {};
+
+    const total_transactions = s.total_transactions ?? s.total_rows ?? s.total_rows ?? (eda.data_overview?.total_rows) ?? 0;
+    const fraud_detected = s.fraud_detected ?? ((eda.class_distribution && (eda.class_distribution.Fraud ?? eda.class_distribution['Fraud'])) ?? 0);
+    const fraud_rate_percent = s.fraud_rate_percent ?? (total_transactions ? Math.round((fraud_detected / total_transactions) * 10000) / 100 : 0);
+
+    return {
+      total_transactions,
+      fraud_detected,
+      fraud_rate_percent,
+    };
+  };
+
   return (
     <div className="rain-scene" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", overflowY: "auto" }}>
       <header className="site-header" style={{ textAlign: "center" }}>
         <h1>Analysis tool</h1>
       </header>
+      {/* Tabs */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 12 }}>
+        <button
+          onClick={() => setActiveTab('analysis')}
+          style={{ padding: '8px 16px', borderRadius: 6, border: activeTab === 'analysis' ? '2px solid #5470c6' : '1px solid #ccc', background: activeTab === 'analysis' ? '#f5f9ff' : '#fff', color: '#000' }}
+        >Analysis</button>
+        <button
+          onClick={() => setActiveTab('transaction')}
+          style={{ padding: '8px 16px', borderRadius: 6, border: activeTab === 'transaction' ? '2px solid #5470c6' : '1px solid #ccc', background: activeTab === 'transaction' ? '#f5f9ff' : '#fff', color: '#000' }}
+        >Transaction Input</button>
+      </div>
       {/* Window glass grid */}
       <div className="glass" aria-hidden />
 
-      {/* Center file drop area */}
-      <div className="file-drop-area" aria-label="File drop area" style={{ flexShrink: 0, alignSelf: "center" }}>
-        <div className="file-drop-inner">
-          <p className="file-drop-title">Add your file</p>
-          <span className="file-drop-hint">
-            {fileName ? `Selected: ${fileName}` : "Click to upload CSV file"}
-          </span>
-          <button
-            type="button"
-            className={`file-drop-button ${clicked ? "clicked" : ""}`}
-            onClick={handleUploadClick}
-            disabled={uploading}
-          >
-            {uploading ? "Processing..." : fileName ? "Change file" : "Upload file"}
-          </button>
-          
-          {/* Hidden file input */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".csv"
-            onChange={handleFileSelect}
-            style={{ display: "none" }}
-            aria-hidden
-          />
-
-          {/* Status message */}
-          {statusMessage && (
-            <p
-              style={{
-                marginTop: "1rem",
-                color: uploadStatus === "success" ? "#4CAF50" : uploadStatus === "error" ? "#f44336" : "#666",
-                fontSize: "0.95rem",
-                fontWeight: "500",
-                textAlign: "center"
-              }}
+      {/* Center file drop area (only show on Analysis tab) */}
+      {activeTab === 'analysis' && (
+        <div className="file-drop-area" aria-label="File drop area" style={{ flexShrink: 0, alignSelf: "center" }}>
+          <div className="file-drop-inner">
+            <p className="file-drop-title">Add your file</p>
+            <span className="file-drop-hint">
+              {fileName ? `Selected: ${fileName}` : "Click to upload CSV file"}
+            </span>
+            <button
+              type="button"
+              className={`file-drop-button ${clicked ? "clicked" : ""}`}
+              onClick={handleUploadClick}
+              disabled={uploading}
             >
-              {statusMessage}
-            </p>
-          )}
+              {uploading ? "Processing..." : fileName ? "Change file" : "Upload file"}
+            </button>
+            
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleFileSelect}
+              style={{ display: "none" }}
+              aria-hidden
+            />
+
+            {/* Status message */}
+            {statusMessage && (
+              <p
+                style={{
+                  marginTop: "1rem",
+                  color: uploadStatus === "success" ? "#4CAF50" : uploadStatus === "error" ? "#f44336" : "#666",
+                  fontSize: "0.95rem",
+                  fontWeight: "500",
+                  textAlign: "center"
+                }}
+              >
+                {statusMessage}
+              </p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Transaction Input form (only show on Transaction tab) */}
+      {activeTab === 'transaction' && (
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+          <form onSubmit={(e) => { e.preventDefault(); handleTxSubmit(); }} style={{ width: '100%', maxWidth: 900, background: '#000', color: '#fff', padding: 20, borderRadius: 8, boxShadow: '0 6px 18px rgba(0,0,0,0.1)' }}>
+            <h3 style={{ marginTop: 0, marginBottom: 16 }}>Transaction Input</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <label style={{ display: 'block', color: '#fff' }}>
+                Amount
+                <input name="amount" value={txForm.amount} onChange={handleTxChange} type="number" step="any" style={{ width: '100%', padding: 8, marginTop: 6, background: '#fff', color: '#000', border: '1px solid #ccc', borderRadius: 4 }} />
+              </label>
+              <label style={{ display: 'block', color: '#fff' }}>
+                Transaction Type
+                <select name="type" value={txForm.type} onChange={handleTxChange} style={{ width: '100%', padding: 8, marginTop: 6, background: '#fff', color: '#000', border: '1px solid #ccc', borderRadius: 4 }}>
+                  <option>Cash In</option>
+                  <option>Cash Out</option>
+                  <option>Transfer</option>
+                  <option>Debit</option>
+                  <option>Payment</option>
+                </select>
+              </label>
+
+              <label style={{ display: 'block', color: '#fff' }}>
+                Sender Name (nameOrig)
+                <input name="nameOrig" value={txForm.nameOrig} onChange={handleTxChange} type="text" style={{ width: '100%', padding: 8, marginTop: 6, background: '#fff', color: '#000', border: '1px solid #ccc', borderRadius: 4 }} />
+              </label>
+              <label style={{ display: 'block', color: '#fff' }}>
+                Receiver Name (nameDest)
+                <input name="nameDest" value={txForm.nameDest} onChange={handleTxChange} type="text" style={{ width: '100%', padding: 8, marginTop: 6, background: '#fff', color: '#000', border: '1px solid #ccc', borderRadius: 4 }} />
+              </label>
+
+              <label style={{ display: 'block', color: '#fff' }}>
+                Sender Old Balance (oldBalanceOrig)
+                <input name="oldBalanceOrig" value={txForm.oldBalanceOrig} onChange={handleTxChange} type="number" step="any" style={{ width: '100%', padding: 8, marginTop: 6, background: '#fff', color: '#000', border: '1px solid #ccc', borderRadius: 4 }} />
+              </label>
+              <label style={{ display: 'block', color: '#fff' }}>
+                Sender New Balance (newBalanceOrig)
+                <input name="newBalanceOrig" value={txForm.newBalanceOrig} onChange={handleTxChange} type="number" step="any" style={{ width: '100%', padding: 8, marginTop: 6, background: '#fff', color: '#000', border: '1px solid #ccc', borderRadius: 4 }} />
+              </label>
+
+              <label style={{ display: 'block', color: '#fff' }}>
+                Receiver Old Balance (oldBalanceDest)
+                <input name="oldBalanceDest" value={txForm.oldBalanceDest} onChange={handleTxChange} type="number" step="any" style={{ width: '100%', padding: 8, marginTop: 6, background: '#fff', color: '#000', border: '1px solid #ccc', borderRadius: 4 }} />
+              </label>
+              <label style={{ display: 'block', color: '#fff' }}>
+                Receiver New Balance (newBalanceDest)
+                <input name="newBalanceDest" value={txForm.newBalanceDest} onChange={handleTxChange} type="number" step="any" style={{ width: '100%', padding: 8, marginTop: 6, background: '#fff', color: '#000', border: '1px solid #ccc', borderRadius: 4 }} />
+              </label>
+            </div>
+
+            <div style={{ marginTop: 16, display: 'flex', gap: 12 }}>
+              <button type="submit" style={{ padding: '10px 18px', background: '#5470c6', color: '#fff', border: 'none', borderRadius: 6 }}>Enter</button>
+              <button type="button" onClick={() => { setTxForm({ amount: '', nameOrig: '', oldBalanceOrig: '', newBalanceOrig: '', nameDest: '', oldBalanceDest: '', newBalanceDest: '', type: 'Transfer' }); setTxMessage(null); }} style={{ padding: '10px 18px', background: '#f3f3f3', border: '1px solid #ddd', borderRadius: 6 }}>Reset</button>
+              {txMessage && <div style={{ marginLeft: 12, alignSelf: 'center', color: '#4caf50' }}>{txMessage}</div>}
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Results Display - Scrollable main window */}
       {predictions && predictions.status === "success" && (
@@ -313,70 +601,96 @@ export default function Rain() {
             <h3 style={{ marginTop: 0, marginBottom: "1.25rem", color: "#fff", fontSize: "2rem", textAlign: "center" }}>Analysis Results</h3>
 
             {/* Summary Stats */}
-            {predictions.data?.summary && (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-                  gap: "1rem",
-                  width: "95%",
-                  maxWidth: "1200px",
-                }}
-              >
+            {(() => {
+              const derived = deriveSummary(predictions);
+              if (!derived) return null;
+              return (
                 <div
                   style={{
-                    padding: "1.5rem",
-                    backgroundColor: "#fff",
-                    borderRadius: "8px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-                    textAlign: "center",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+                    gap: "1rem",
+                    width: "95%",
+                    maxWidth: "1200px",
                   }}
                 >
-                  <div style={{ fontSize: "1rem", color: "#666", fontWeight: "500" }}>Total Transactions</div>
-                  <div style={{ fontSize: "2.2rem", fontWeight: "bold", color: "#333", marginTop: "0.5rem" }}>
-                    {predictions.data.summary.total_transactions}
+                  <div
+                    style={{
+                      padding: "1.5rem",
+                      backgroundColor: "#fff",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div style={{ fontSize: "1rem", color: "#666", fontWeight: "500" }}>Total Transactions</div>
+                    <div style={{ fontSize: "2.2rem", fontWeight: "bold", color: "#333", marginTop: "0.5rem" }}>
+                      {derived.total_transactions}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      padding: "1.5rem",
+                      backgroundColor: "#fff",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div style={{ fontSize: "1rem", color: "#666", fontWeight: "500" }}>Fraud Detected</div>
+                    <div style={{ fontSize: "2.2rem", fontWeight: "bold", color: "#ee6666", marginTop: "0.5rem" }}>
+                      {derived.fraud_detected}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      padding: "1.5rem",
+                      backgroundColor: "#fff",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div style={{ fontSize: "1rem", color: "#666", fontWeight: "500" }}>Fraud Rate</div>
+                    <div style={{ fontSize: "2.2rem", fontWeight: "bold", color: "#ee6666", marginTop: "0.5rem" }}>
+                      {derived.fraud_rate_percent}%
+                    </div>
                   </div>
                 </div>
-                <div
-                  style={{
-                    padding: "1.5rem",
-                    backgroundColor: "#fff",
-                    borderRadius: "8px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-                    textAlign: "center",
-                  }}
-                >
-                  <div style={{ fontSize: "1rem", color: "#666", fontWeight: "500" }}>Fraud Detected</div>
-                  <div style={{ fontSize: "2.2rem", fontWeight: "bold", color: "#ee6666", marginTop: "0.5rem" }}>
-                    {predictions.data.summary.fraud_detected}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    padding: "1.5rem",
-                    backgroundColor: "#fff",
-                    borderRadius: "8px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-                    textAlign: "center",
-                  }}
-                >
-                  <div style={{ fontSize: "1rem", color: "#666", fontWeight: "500" }}>Fraud Rate</div>
-                  <div style={{ fontSize: "2.2rem", fontWeight: "bold", color: "#ee6666", marginTop: "0.5rem" }}>
-                    {predictions.data.summary.fraud_rate_percent}%
-                  </div>
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Charts Grid (scrollable) */}
             <div style={{ marginTop: "2rem", overflowY: "auto", maxHeight: "calc(100vh - 320px)", paddingRight: "1rem" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(500px, 1fr))", gap: "2rem", width: "95%", maxWidth: "1400px", paddingBottom: "3rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "2rem", width: "95%", maxWidth: "1600px", paddingBottom: "3rem" }}>
               {/* Mixed Volume vs Rate Chart */}
               {predictions.data?.eda_data?.mixed_volume_vs_rate && (
                 <div style={{ backgroundColor: "#fff", borderRadius: "8px", padding: "1rem", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
                   <ReactECharts
                     option={getMixedVolumeVsRateChart(predictions.data.eda_data)}
-                    style={{ height: "500px" }}
+                    style={{ height: "700px", width: "100%" }}
+                  />
+                </div>
+              )}
+
+              {/* Correlation Heatmap */}
+              {predictions.data?.eda_data?.correlation_matrix && (
+                <div style={{ backgroundColor: "#fff", borderRadius: "8px", padding: "1rem", boxShadow: "0 4px 12px rgba(0,0,0,0.2)", display: 'flex', justifyContent: 'center' }}>
+                  <div style={{ width: '100%', maxWidth: '1200px', aspectRatio: '1 / 1' }}>
+                    <ReactECharts
+                      option={getCorrelationHeatmapChart(predictions.data.eda_data)}
+                      style={{ height: "100%", width: "100%" }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Class Distribution Pie */}
+              {predictions.data?.eda_data?.class_distribution && (
+                <div style={{ backgroundColor: "#fff", borderRadius: "8px", padding: "1rem", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
+                  <ReactECharts
+                    option={getClassDistributionChart(predictions.data.eda_data)}
+                    style={{ height: "700px", width: "100%" }}
                   />
                 </div>
               )}
@@ -386,7 +700,17 @@ export default function Rain() {
                 <div style={{ backgroundColor: "#fff", borderRadius: "8px", padding: "1rem", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
                   <ReactECharts
                     option={getStackedAmountRangesChart(predictions.data.eda_data)}
-                    style={{ height: "500px" }}
+                    style={{ height: "700px", width: "100%" }}
+                  />
+                </div>
+              )}
+
+              {/* Log Balance Segment (Grouped Bar, Log Scale) */}
+              {predictions.data?.eda_data?.log_balance_segment && (
+                <div style={{ backgroundColor: "#fff", borderRadius: "8px", padding: "1rem", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
+                  <ReactECharts
+                    option={getLogBalanceSegmentChart(predictions.data.eda_data)}
+                    style={{ height: "700px", width: "100%" }}
                   />
                 </div>
               )}
@@ -396,7 +720,7 @@ export default function Rain() {
                 <div style={{ backgroundColor: "#fff", borderRadius: "8px", padding: "1rem", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
                   <ReactECharts
                     option={getZeroBalanceChart(predictions.data.eda_data)}
-                    style={{ height: "500px" }}
+                    style={{ height: "700px", width: "100%" }}
                   />
                 </div>
               )}
@@ -406,17 +730,17 @@ export default function Rain() {
                 <div style={{ backgroundColor: "#fff", borderRadius: "8px", padding: "1rem", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
                   <ReactECharts
                     option={getAccountingAnomaliesChart(predictions.data.eda_data)}
-                    style={{ height: "500px" }}
+                    style={{ height: "700px", width: "100%" }}
                   />
                 </div>
               )}
 
               {/* Hourly Activity Chart - Full width */}
-              {predictions.data?.eda_data?.multi_line_hourly && (
+              {(predictions.data?.eda_data?.multi_line_hourly || (predictions.data?.eda_data?.hourly_volume_bar && predictions.data?.eda_data?.hourly_fraud_rate_line)) && (
                 <div style={{ backgroundColor: "#fff", borderRadius: "8px", padding: "1rem", boxShadow: "0 4px 12px rgba(0,0,0,0.2)", gridColumn: "1 / -1" }}>
                   <ReactECharts
                     option={getHourlyActivityChart(predictions.data.eda_data)}
-                    style={{ height: "500px" }}
+                    style={{ height: "700px", width: "100%" }}
                   />
                 </div>
               )}
@@ -430,5 +754,4 @@ export default function Rain() {
       <p className="label" aria-hidden>
       </p>
     </div>
-  );
-}
+  );}

@@ -61,7 +61,7 @@ def main():
         if is_windows:
             backend_cmd = "uv run start_app.py"
         else:
-            backend_cmd = ["uv", "run", "python", "startup_app.py"]
+            backend_cmd = ["uv", "run", "python", "start_app.py"]
             
         backend_process = subprocess.Popen(
             backend_cmd, 

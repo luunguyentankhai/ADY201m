@@ -25,3 +25,5 @@ CREATE TABLE fraud_detection (
 CREATE INDEX idx_transactions_type ON fraud_detection(type);
 CREATE INDEX idx_transactions_name_dest ON fraud_detection(name_dest);
 CREATE INDEX idx_transactions_is_fraud ON fraud_detection(is_fraud);
+
+-- query xác định tài khoản giao dịch nào là gian lận

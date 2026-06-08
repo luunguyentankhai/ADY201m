@@ -481,11 +481,11 @@ export default function Rain() {
       <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 12 }}>
         <button
           onClick={() => setActiveTab('analysis')}
-          style={{ padding: '8px 16px', borderRadius: 6, border: activeTab === 'analysis' ? '2px solid #5470c6' : '1px solid #ccc', background: activeTab === 'analysis' ? '#f5f9ff' : '#fff', color: '#000' }}
+          className={`tab-button ${activeTab === 'analysis' ? 'active' : ''}`}
         >Analysis</button>
         <button
           onClick={() => setActiveTab('transaction')}
-          style={{ padding: '8px 16px', borderRadius: 6, border: activeTab === 'transaction' ? '2px solid #5470c6' : '1px solid #ccc', background: activeTab === 'transaction' ? '#f5f9ff' : '#fff', color: '#000' }}
+          className={`tab-button ${activeTab === 'transaction' ? 'active' : ''}`}
         >Transaction Input</button>
       </div>
       {/* Window glass grid */}
@@ -539,7 +539,7 @@ export default function Rain() {
       {/* Transaction Input form (only show on Transaction tab) */}
       {activeTab === 'transaction' && (
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-          <form onSubmit={(e) => { e.preventDefault(); handleTxSubmit(); }} style={{ width: '100%', maxWidth: 900, background: '#000', color: '#fff', padding: 20, borderRadius: 8, boxShadow: '0 6px 18px rgba(0,0,0,0.1)' }}>
+          <form onSubmit={(e) => { e.preventDefault(); handleTxSubmit(); }} className="transaction-form" style={{ width: '100%', maxWidth: 900, background: '#000', color: '#fff', padding: 20, borderRadius: 8, boxShadow: '0 6px 18px rgba(0,0,0,0.1)' }}>
             <h3 style={{ marginTop: 0, marginBottom: 16 }}>Transaction Input</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <label style={{ display: 'block', color: '#fff' }}>
@@ -586,8 +586,8 @@ export default function Rain() {
             </div>
 
             <div style={{ marginTop: 16, display: 'flex', gap: 12 }}>
-              <button type="submit" style={{ padding: '10px 18px', background: '#5470c6', color: '#fff', border: 'none', borderRadius: 6 }}>Enter</button>
-              <button type="button" onClick={() => { setTxForm({ amount: '', nameOrig: '', oldBalanceOrig: '', newBalanceOrig: '', nameDest: '', oldBalanceDest: '', newBalanceDest: '', type: 'Transfer' }); setTxMessage(null); }} style={{ padding: '10px 18px', background: '#f3f3f3', border: '1px solid #ddd', borderRadius: 6 }}>Reset</button>
+              <button type="submit" className="tx-submit">Enter</button>
+              <button type="button" className="reset-button" onClick={() => { setTxForm({ amount: '', nameOrig: '', oldBalanceOrig: '', newBalanceOrig: '', nameDest: '', oldBalanceDest: '', newBalanceDest: '', type: 'Transfer' }); setTxMessage(null); }}>Reset</button>
               {txMessage && <div style={{ marginLeft: 12, alignSelf: 'center', color: '#4caf50' }}>{txMessage}</div>}
             </div>
           </form>

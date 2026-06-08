@@ -189,6 +189,115 @@ html, body, #root {
   border-color: rgba(255, 255, 255, 0.7);
 }
 
+/* Tab buttons (Analysis / Transaction Input) */
+.tab-button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #cfcfcf;
+  background: #ffffff;
+  color: #0a0f1a;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+.tab-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+.tab-button.active {
+  border: 2px solid #5470c6;
+  background: #f5f9ff;
+  color: #0b2340;
+}
+
+/* Transaction form UI customizations */
+.transaction-form {
+  background: linear-gradient(180deg, rgba(0,0,0,0.9), rgba(10,10,10,0.95));
+  padding: 22px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+.transaction-form label { color: #e8eef8; font-size: 0.95rem; }
+.transaction-form input,
+.transaction-form select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  background: #fff;
+  color: #0a0f1a;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  outline: none;
+  transition: box-shadow 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+.transaction-form input:focus,
+.transaction-form select:focus {
+  box-shadow: 0 6px 18px rgba(84,112,198,0.14);
+  border-color: #5470c6;
+  transform: translateY(-1px);
+}
+
+/* Submit and reset buttons inside transaction form */
+.transaction-form .tx-submit {
+  padding: 10px 18px;
+  background: #5470c6;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.transaction-form .tx-submit:hover { filter: brightness(1.05); }
+
+.transaction-form .reset-button {
+  padding: 10px 18px;
+  background: #f3f3f3;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #000; /* make reset button text black */
+}
+.transaction-form .reset-button:hover { box-shadow: 0 6px 12px rgba(0,0,0,0.06); }
+
+/* Results area centering */
+.results-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.results-inner {
+  width: 95%;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  justify-items: center; /* center boxes inside grid cells */
+}
+.summary-grid > div {
+  width: 100%;
+  max-width: 360px; /* keep summary cards a reasonable width */
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+}
+
+.charts-grid > div {
+  margin: 0 auto;
+  width: 100%;
+}
+
 /* ── Overlay text ── */
 .label {
   position: absolute;

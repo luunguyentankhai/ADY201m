@@ -30,7 +30,7 @@ export default function Rain() {
   const [txForm, setTxForm] = useState({
     amount: '',
     nameOrig: '',
-    oldBalanceOrig: '',
+    oldBalanceOrg: '',
     newBalanceOrig: '',
     nameDest: '',
     oldBalanceDest: '',
@@ -111,7 +111,7 @@ export default function Rain() {
     const payload = {
       amount: Number(txForm.amount) || 0,
       nameOrig: txForm.nameOrig,
-      oldBalanceOrig: Number(txForm.oldBalanceOrig) || 0,
+      oldBalanceOrig: Number(txForm.oldBalanceOrg) || 0,
       newBalanceOrig: Number(txForm.newBalanceOrig) || 0,
       nameDest: txForm.nameDest,
       oldBalanceDest: Number(txForm.oldBalanceDest) || 0,

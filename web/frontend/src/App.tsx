@@ -38,6 +38,7 @@ export default function Rain() {
     type: 'Transfer'
   });
   const [txMessage, setTxMessage] = useState<string | null>(null);
+  const [singleResult, setSingleResult] = useState<any | null>(null);
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -105,23 +106,49 @@ export default function Rain() {
     setTxForm((s) => ({ ...s, [name]: value }));
   };
 
-  const handleTxSubmit = (e?: React.FormEvent) => {
+  const handleTxSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    // basic validation
+    setTxMessage(null);
+    setSingleResult(null);
+
+    // map frontend camelCase names to backend schema field names
     const payload = {
       amount: Number(txForm.amount) || 0,
       nameOrig: txForm.nameOrig,
-      oldBalanceOrig: Number(txForm.oldBalanceOrg) || 0,
-      newBalanceOrig: Number(txForm.newBalanceOrig) || 0,
+      oldbalanceOrg: Number(txForm.oldBalanceOrig) || 0,
+      newbalanceOrig: Number(txForm.newBalanceOrig) || 0,
       nameDest: txForm.nameDest,
-      oldBalanceDest: Number(txForm.oldBalanceDest) || 0,
-      newBalanceDest: Number(txForm.newBalanceDest) || 0,
+      oldbalanceDest: Number(txForm.oldBalanceDest) || 0,
+      newbalanceDest: Number(txForm.newBalanceDest) || 0,
       type: txForm.type
     };
 
-    console.log('Transaction submitted', payload);
-    setTxMessage('Transaction entered (see console).');
-    // keep it local; if you want to POST to backend, replace this with fetch.
+    try {
+      setTxMessage('Sending to model...');
+      console.log('handleTxSubmit payload:', payload);
+      const res = await fetch('http://127.0.0.1:8000/api/predict/single', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`${res.status} ${res.statusText} ${text}`);
+      }
+
+      const data = await res.json();
+      // expected shape: { status: 'success', data: { ... } }
+      if (data && data.status === 'success') {
+        setSingleResult(data.data);
+        setTxMessage('Prediction received');
+      } else {
+        setTxMessage('Prediction failed');
+      }
+    } catch (err) {
+      console.error('Single predict error', err);
+      setTxMessage(err instanceof Error ? err.message : 'Request failed');
+    }
   };
 
   // Chart rendering functions
@@ -590,6 +617,23 @@ export default function Rain() {
               <button type="button" className="reset-button" onClick={() => { setTxForm({ amount: '', nameOrig: '', oldBalanceOrig: '', newBalanceOrig: '', nameDest: '', oldBalanceDest: '', newBalanceDest: '', type: 'Transfer' }); setTxMessage(null); }}>Reset</button>
               {txMessage && <div style={{ marginLeft: 12, alignSelf: 'center', color: '#4caf50' }}>{txMessage}</div>}
             </div>
+
+            {/* Single prediction result */}
+            {singleResult && (
+              <div style={{ marginTop: 16, background: '#fff', color: '#000', padding: 12, borderRadius: 8, maxWidth: 900 }}>
+                <div style={{ fontWeight: 700 }}>Transaction Result</div>
+                <div style={{ marginTop: 8 }}>Decision: <strong>{singleResult.final_decision}</strong></div>
+                <div>Voting: {singleResult.voting_ratio}</div>
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ fontWeight: 600 }}>Model details:</div>
+                  <ul>
+                    {Array.isArray(singleResult.model_details) && singleResult.model_details.map((m: any, idx: number) => (
+                      <li key={idx}>{m.model_name}: {m.is_fraud ? 'FRAUD' : 'SAFE'} ({m.confidence_score}%)</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
           </form>
         </div>
       )}

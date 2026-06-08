@@ -115,7 +115,7 @@ export default function Rain() {
     const payload = {
       amount: Number(txForm.amount) || 0,
       nameOrig: txForm.nameOrig,
-      oldbalanceOrg: Number(txForm.oldBalanceOrig) || 0,
+      oldbalanceOrg: Number(txForm.oldBalanceOrg) || 0,
       newbalanceOrig: Number(txForm.newBalanceOrig) || 0,
       nameDest: txForm.nameDest,
       oldbalanceDest: Number(txForm.oldBalanceDest) || 0,
@@ -595,7 +595,7 @@ export default function Rain() {
 
               <label style={{ display: 'block', color: '#fff' }}>
                 Sender Old Balance (oldBalanceOrig)
-                <input name="oldBalanceOrig" value={txForm.oldBalanceOrig} onChange={handleTxChange} type="number" step="any" style={{ width: '100%', padding: 8, marginTop: 6, background: '#fff', color: '#000', border: '1px solid #ccc', borderRadius: 4 }} />
+                <input name="oldBalanceOrg" value={txForm.oldBalanceOrg} onChange={handleTxChange} type="number" step="any" style={{ width: '100%', padding: 8, marginTop: 6, background: '#fff', color: '#000', border: '1px solid #ccc', borderRadius: 4 }} />
               </label>
               <label style={{ display: 'block', color: '#fff' }}>
                 Sender New Balance (newBalanceOrig)
@@ -614,7 +614,7 @@ export default function Rain() {
 
             <div style={{ marginTop: 16, display: 'flex', gap: 12 }}>
               <button type="submit" className="tx-submit">Enter</button>
-              <button type="button" className="reset-button" onClick={() => { setTxForm({ amount: '', nameOrig: '', oldBalanceOrig: '', newBalanceOrig: '', nameDest: '', oldBalanceDest: '', newBalanceDest: '', type: 'Transfer' }); setTxMessage(null); }}>Reset</button>
+              <button type="button" className="reset-button" onClick={() => { setTxForm({ amount: '', nameOrig: '', oldBalanceOrg: '', newBalanceOrig: '', nameDest: '', oldBalanceDest: '', newBalanceDest: '', type: 'Transfer' }); setTxMessage(null); }}>Reset</button>
               {txMessage && <div style={{ marginLeft: 12, alignSelf: 'center', color: '#4caf50' }}>{txMessage}</div>}
             </div>
 

@@ -25,9 +25,10 @@ class TransactionInput(BaseModel):
 
     @field_validator('type', mode='before')
     @classmethod
-    def uppercase_type(cls, v: str) -> TransactionType:
-        return TransactionType(v.upper())
-
+    def uppercase_type(cls, v):
+        if isinstance(v, str):
+            return v.upper()
+        return v
     class Config:
         json_schema_extra = {
                 "example": {

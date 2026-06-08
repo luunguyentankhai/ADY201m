@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 from typing import ParamSpec
 from pydantic import BaseModel, Field, field_validator, ConfigDict
@@ -20,7 +21,7 @@ class TransactionInput(BaseModel):
 
     type: str = Field(...)
 
-    step: int = Field(default=1)
+    step: int = Field(default_factory=lambda: datetime.now().hour)
 
     @field_validator('type', mode='before')
     @classmethod
@@ -37,8 +38,7 @@ class TransactionInput(BaseModel):
                     "nameDest": "C553264065",
                     "oldbalanceDest": 0.0,
                     "newbalanceDest": 0.0,
-                    "type": "TRANSFER",
-                    "step": 1
+                    "type": "TRANSFER"
                     }
                 }
 

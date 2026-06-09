@@ -1,0 +1,361 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ML Model Comparison — Fraud Detection</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="tabs" role="tablist" aria-label="Model comparison tabs">
+    <button type="button" class="tab active" data-target="lr" role="tab" aria-controls="panel-lr" aria-selected="true">Logistic Regression</button>
+    <button type="button" class="tab" data-target="rf" role="tab" aria-controls="panel-rf" aria-selected="false">Random Forest</button>
+    <button type="button" class="tab" data-target="xgb" role="tab" aria-controls="panel-xgb" aria-selected="false">XGBoost</button>
+    <button type="button" class="tab" data-target="cat" role="tab" aria-controls="panel-cat" aria-selected="false">CatBoost</button>
+    <button type="button" class="tab" data-target="lgbm" role="tab" aria-controls="panel-lgbm" aria-selected="false">LightGBM</button>
+    <button type="button" class="tab" data-target="cmp" role="tab" aria-controls="panel-cmp" aria-selected="false">📊 Compare All</button>
+  </div>
+
+  <!-- Logistic Regression -->
+  <div class="panel active" id="panel-lr" role="tabpanel" aria-labelledby="panel-lr">
+    <div class="model-header">
+      <div class="model-badge" style="background:#E6F1FB;color:#0C447C;">LR</div>
+      <div><div class="model-title">Logistic Regression</div><div class="model-tagline">Linear probabilistic classifier — the baseline benchmark</div></div>
+    </div>
+    <div class="section-label">Structure</div>
+    <div class="struct-desc">
+      Maps input features to a probability via a linear combination followed by the sigmoid function:
+      <strong>P(fraud) = σ(w·x + b)</strong>. A single decision boundary (hyperplane) separates classes. Weights w are learned by maximizing log-likelihood (or equivalently minimizing binary cross-entropy), optionally with L1/L2 regularization.
+    </div>
+    <svg width="100%" viewBox="0 0 640 100" role="img"><title>Logistic regression structure</title>
+      <defs><marker id="a0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <rect x="10" y="30" width="100" height="38" rx="6" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+      <text x="60" y="53" text-anchor="middle" font-size="12" fill="#0C447C" font-family="var(--font-sans,sans-serif)">x₁,x₂…xₙ</text>
+      <line x1="110" y1="49" x2="168" y2="49" stroke="#185FA5" stroke-width="1" marker-end="url(#a0)"/>
+      <rect x="168" y="30" width="120" height="38" rx="6" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+      <text x="228" y="53" text-anchor="middle" font-size="12" fill="#085041" font-family="var(--font-sans,sans-serif)">w·x + b (linear)</text>
+      <line x1="288" y1="49" x2="346" y2="49" stroke="#0F6E56" stroke-width="1" marker-end="url(#a0)"/>
+      <rect x="346" y="30" width="100" height="38" rx="6" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+      <text x="396" y="53" text-anchor="middle" font-size="12" fill="#633806" font-family="var(--font-sans,sans-serif)">σ(z) sigmoid</text>
+      <line x1="446" y1="49" x2="504" y2="49" stroke="#854F0B" stroke-width="1" marker-end="url(#a0)"/>
+      <rect x="504" y="30" width="120" height="38" rx="6" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+      <text x="564" y="53" text-anchor="middle" font-size="12" fill="#712B13" font-family="var(--font-sans,sans-serif)">P(fraud) ∈ [0,1]</text>
+    </svg>
+    <div class="section-label">Performance on Fraud Detection</div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-val">★★☆</div><div class="stat-lbl">Accuracy</div></div>
+      <div class="stat-card"><div class="stat-val">★★☆</div><div class="stat-lbl">Recall</div></div>
+      <div class="stat-card"><div class="stat-val">Fast</div><div class="stat-lbl">Train speed</div></div>
+      <div class="stat-card"><div class="stat-val">High</div><div class="stat-lbl">Interpretability</div></div>
+    </div>
+    <div class="section-label">Strengths vs Weaknesses</div>
+    <div class="grid2">
+      <div class="adv">✓ Fully interpretable — feature weights are coefficients<br>✓ Very fast to train/infer<br>✓ Outputs calibrated probabilities<br>✓ Great baseline for auditing</div>
+      <div class="dis">✗ Fails on non-linear fraud patterns<br>✗ Struggles with feature interactions<br>✗ Sensitive to imbalanced classes<br>✗ Poor recall on rare fraud cases</div>
+    </div>
+    <div class="fraud-note">⚠ Fraud context: Fraudsters craft non-linear behavior (e.g. amount × merchant category interactions). LR misses these. Useful as a baseline or in regulated environments requiring full explainability.</div>
+  </div>
+
+  <!-- Random Forest -->
+  <div class="panel" id="panel-rf">
+    <div class="model-header">
+      <div class="model-badge" style="background:#EAF3DE;color:#27500A;">RF</div>
+      <div><div class="model-title">Random Forest</div><div class="model-tagline">Ensemble of decorrelated decision trees via bagging</div></div>
+    </div>
+    <div class="section-label">Structure</div>
+    <div class="struct-desc">
+      Builds B decision trees in parallel, each trained on a bootstrap sample (≈63% of data) and at each node considers only a random subset of √p features. Final prediction is majority vote (classification) or average (regression). Variance is reduced by averaging many low-correlation trees.
+    </div>
+    <svg width="100%" viewBox="0 0 640 130" role="img"><title>Random Forest structure</title>
+      <defs><marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <rect x="10" y="45" width="80" height="38" rx="6" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+      <text x="50" y="68" text-anchor="middle" font-size="11" fill="#0C447C" font-family="var(--font-sans,sans-serif)">Input data</text>
+      <line x1="90" y1="55" x2="128" y2="30" stroke="#639922" stroke-width="1" marker-end="url(#a1)"/>
+      <line x1="90" y1="64" x2="128" y2="64" stroke="#639922" stroke-width="1" marker-end="url(#a1)"/>
+      <line x1="90" y1="73" x2="128" y2="97" stroke="#639922" stroke-width="1" marker-end="url(#a1)"/>
+      <rect x="128" y="14" width="90" height="32" rx="6" fill="#EAF3DE" stroke="#3B6D11" stroke-width="0.5"/>
+      <text x="173" y="34" text-anchor="middle" font-size="11" fill="#27500A" font-family="var(--font-sans,sans-serif)">Tree 1 (bootstrap)</text>
+      <rect x="128" y="48" width="90" height="32" rx="6" fill="#EAF3DE" stroke="#3B6D11" stroke-width="0.5"/>
+      <text x="173" y="68" text-anchor="middle" font-size="11" fill="#27500A" font-family="var(--font-sans,sans-serif)">Tree 2 (bootstrap)</text>
+      <rect x="128" y="82" width="90" height="32" rx="6" fill="#EAF3DE" stroke="#3B6D11" stroke-width="0.5"/>
+      <text x="173" y="102" text-anchor="middle" font-size="11" fill="#27500A" font-family="var(--font-sans,sans-serif)">Tree B (bootstrap)</text>
+      <line x1="218" y1="30" x2="356" y2="58" stroke="#3B6D11" stroke-width="1" marker-end="url(#a1)"/>
+      <line x1="218" y1="64" x2="356" y2="64" stroke="#3B6D11" stroke-width="1" marker-end="url(#a1)"/>
+      <line x1="218" y1="98" x2="356" y2="70" stroke="#3B6D11" stroke-width="1" marker-end="url(#a1)"/>
+      <rect x="356" y="44" width="100" height="40" rx="6" fill="#C0DD97" stroke="#3B6D11" stroke-width="0.5"/>
+      <text x="406" y="62" text-anchor="middle" font-size="11" fill="#27500A" font-family="var(--font-sans,sans-serif)">Vote / Average</text>
+      <text x="406" y="76" text-anchor="middle" font-size="10" fill="#3B6D11" font-family="var(--font-sans,sans-serif)">(majority vote)</text>
+      <line x1="456" y1="64" x2="514" y2="64" stroke="#3B6D11" stroke-width="1" marker-end="url(#a1)"/>
+      <rect x="514" y="44" width="110" height="40" rx="6" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+      <text x="569" y="62" text-anchor="middle" font-size="11" fill="#712B13" font-family="var(--font-sans,sans-serif)">P(fraud)</text>
+      <text x="569" y="76" text-anchor="middle" font-size="10" fill="#993C1D" font-family="var(--font-sans,sans-serif)">+ feature importance</text>
+    </svg>
+    <div class="section-label">Performance on Fraud Detection</div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-val">★★★</div><div class="stat-lbl">Accuracy</div></div>
+      <div class="stat-card"><div class="stat-val">★★★</div><div class="stat-lbl">Recall</div></div>
+      <div class="stat-card"><div class="stat-val">Medium</div><div class="stat-lbl">Train speed</div></div>
+      <div class="stat-card"><div class="stat-val">Medium</div><div class="stat-lbl">Interpretability</div></div>
+    </div>
+    <div class="section-label">Strengths vs Weaknesses</div>
+    <div class="grid2">
+      <div class="adv">✓ Robust to overfitting<br>✓ Handles missing values well<br>✓ Built-in feature importance<br>✓ Handles class imbalance (class_weight)</div>
+      <div class="dis">✗ Slow inference (many deep trees)<br>✗ Memory-heavy<br>✗ Less accurate than boosting on tabular<br>✗ Trees can be biased toward high-card features</div>
+    </div>
+    <div class="fraud-note">⚠ Fraud context: Excellent for catching diverse fraud patterns and identifying which features matter most. Recommended when interpretability matters alongside accuracy, or when you need reliable probability calibration.</div>
+  </div>
+
+  <!-- XGBoost -->
+  <div class="panel" id="panel-xgb">
+    <div class="model-header">
+      <div class="model-badge" style="background:#FAEEDA;color:#633806;">XGB</div>
+      <div><div class="model-title">XGBoost</div><div class="model-tagline">Gradient boosting with regularization and second-order optimization</div></div>
+    </div>
+    <div class="section-label">Structure</div>
+    <div class="struct-desc">
+      Sequentially adds trees, each correcting the residual error of the previous ensemble. Uses second-order Taylor expansion of the loss (both gradient g and hessian h) to compute optimal leaf weights exactly: <strong>w* = −G / (H + λ)</strong>. L1 (α) and L2 (λ) regularization on leaf weights. Supports column subsampling, row subsampling, and monotone constraints.
+    </div>
+    <svg width="100%" viewBox="0 0 640 140" role="img"><title>XGBoost sequential boosting structure</title>
+      <defs><marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <rect x="10" y="51" width="70" height="38" rx="6" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+      <text x="45" y="74" text-anchor="middle" font-size="11" fill="#0C447C" font-family="var(--font-sans,sans-serif)">Input</text>
+      <line x1="80" y1="70" x2="108" y2="70" stroke="#BA7517" stroke-width="1" marker-end="url(#a2)"/>
+      <rect x="108" y="30" width="88" height="36" rx="6" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+      <text x="152" y="47" text-anchor="middle" font-size="11" fill="#633806" font-family="var(--font-sans,sans-serif)">Tree 1</text>
+      <text x="152" y="60" text-anchor="middle" font-size="10" fill="#854F0B" font-family="var(--font-sans,sans-serif)">F₀(x)</text>
+      <rect x="108" y="95" width="88" height="22" rx="4" fill="#F1EFE8" stroke="#888780" stroke-width="0.5"/>
+      <text x="152" y="110" text-anchor="middle" font-size="10" fill="#5F5E5A" font-family="var(--font-sans,sans-serif)">residuals r₁</text>
+      <line x1="196" y1="48" x2="224" y2="48" stroke="#BA7517" stroke-width="1" marker-end="url(#a2)"/>
+      <line x1="152" y1="66" x2="152" y2="95" stroke="#888780" stroke-width="0.5" stroke-dasharray="3 2"/>
+      <rect x="224" y="30" width="88" height="36" rx="6" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+      <text x="268" y="47" text-anchor="middle" font-size="11" fill="#633806" font-family="var(--font-sans,sans-serif)">Tree 2</text>
+      <text x="268" y="60" text-anchor="middle" font-size="10" fill="#854F0B" font-family="var(--font-sans,sans-serif)">F₁(x)+η·h₁</text>
+      <rect x="224" y="95" width="88" height="22" rx="4" fill="#F1EFE8" stroke="#888780" stroke-width="0.5"/>
+      <text x="268" y="110" text-anchor="middle" font-size="10" fill="#5F5E5A" font-family="var(--font-sans,sans-serif)">residuals r₂</text>
+      <line x1="312" y1="48" x2="340" y2="48" stroke="#BA7517" stroke-width="1" marker-end="url(#a2)"/>
+      <line x1="268" y1="66" x2="268" y2="95" stroke="#888780" stroke-width="0.5" stroke-dasharray="3 2"/>
+      <rect x="340" y="30" width="88" height="36" rx="6" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+      <text x="384" y="47" text-anchor="middle" font-size="11" fill="#633806" font-family="var(--font-sans,sans-serif)">Tree T</text>
+      <text x="384" y="60" text-anchor="middle" font-size="10" fill="#854F0B" font-family="var(--font-sans,sans-serif)">F_{T-1}+η·h_T</text>
+      <line x1="428" y1="48" x2="486" y2="48" stroke="#BA7517" stroke-width="1" marker-end="url(#a2)"/>
+      <rect x="486" y="28" width="140" height="44" rx="6" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+      <text x="556" y="47" text-anchor="middle" font-size="11" fill="#712B13" font-family="var(--font-sans,sans-serif)">F(x) = Σ η·hₜ(x)</text>
+      <text x="556" y="63" text-anchor="middle" font-size="10" fill="#993C1D" font-family="var(--font-sans,sans-serif)">+ L1/L2 reg</text>
+      <text x="268" y="130" text-anchor="middle" font-size="10" fill="#888780" font-family="var(--font-sans,sans-serif)">Each tree fitted to negative gradient (residuals) of previous</text>
+    </svg>
+    <div class="section-label">Performance on Fraud Detection</div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-val">★★★</div><div class="stat-lbl">Accuracy</div></div>
+      <div class="stat-card"><div class="stat-val">★★★</div><div class="stat-lbl">AUC-ROC</div></div>
+      <div class="stat-card"><div class="stat-val">Medium</div><div class="stat-lbl">Train speed</div></div>
+      <div class="stat-card"><div class="stat-val">Medium</div><div class="stat-lbl">Interpretability</div></div>
+    </div>
+    <div class="section-label">Strengths vs Weaknesses</div>
+    <div class="grid2">
+      <div class="adv">✓ Top accuracy on tabular fraud data<br>✓ Strong regularization prevents overfitting<br>✓ Handles missing values natively<br>✓ scale_pos_weight for class imbalance<br>✓ SHAP-compatible for explainability</div>
+      <div class="dis">✗ Slower than LightGBM on large datasets<br>✗ Many hyperparameters to tune<br>✗ High memory usage for deep trees<br>✗ Sensitive to noisy labels</div>
+    </div>
+    <div class="fraud-note">⚠ Fraud context: The industry workhorse — consistently wins Kaggle fraud competitions. scale_pos_weight handles severe class imbalance (1:200 fraud ratios). Pair with SHAP for regulatory explainability requirements.</div>
+  </div>
+
+  <!-- CatBoost -->
+  <div class="panel" id="panel-cat">
+    <div class="model-header">
+      <div class="model-badge" style="background:#FBEAF0;color:#72243E;">Cat</div>
+      <div><div class="model-title">CatBoost</div><div class="model-tagline">Gradient boosting with symmetric trees and ordered boosting</div></div>
+    </div>
+    <div class="section-label">Structure</div>
+    <div class="struct-desc">
+      Builds symmetric (oblivious) trees where every node at the same depth uses the same split condition — creating a balanced tree that acts like a lookup table for fast inference. Uses <strong>ordered boosting</strong> (a permutation-based scheme) to avoid prediction shift (target leakage during training). Categorical features are handled natively via target statistics without requiring preprocessing.
+    </div>
+    <svg width="100%" viewBox="0 0 640 120" role="img"><title>CatBoost symmetric tree structure</title>
+      <defs><marker id="a3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <rect x="10" y="44" width="80" height="32" rx="6" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+      <text x="50" y="64" text-anchor="middle" font-size="11" fill="#0C447C" font-family="var(--font-sans,sans-serif)">Input + cats</text>
+      <line x1="90" y1="60" x2="118" y2="60" stroke="#D4537E" stroke-width="1" marker-end="url(#a3)"/>
+      <rect x="118" y="10" width="110" height="30" rx="4" fill="#FBEAF0" stroke="#993556" stroke-width="0.5"/>
+      <text x="173" y="29" text-anchor="middle" font-size="10" fill="#72243E" font-family="var(--font-sans,sans-serif)">Cat encoding (TS)</text>
+      <rect x="118" y="44" width="110" height="32" rx="6" fill="#FBEAF0" stroke="#993556" stroke-width="0.5"/>
+      <text x="173" y="58" text-anchor="middle" font-size="11" fill="#72243E" font-family="var(--font-sans,sans-serif)">Symmetric tree</text>
+      <text x="173" y="70" text-anchor="middle" font-size="10" fill="#D4537E" font-family="var(--font-sans,sans-serif)">(same split/depth)</text>
+      <rect x="118" y="82" width="110" height="26" rx="4" fill="#FBEAF0" stroke="#993556" stroke-width="0.5"/>
+      <text x="173" y="99" text-anchor="middle" font-size="10" fill="#72243E" font-family="var(--font-sans,sans-serif)">Ordered boosting</text>
+      <line x1="228" y1="60" x2="286" y2="60" stroke="#D4537E" stroke-width="1" marker-end="url(#a3)"/>
+      <rect x="286" y="44" width="120" height="32" rx="6" fill="#F4C0D1" stroke="#993556" stroke-width="0.5"/>
+      <text x="346" y="58" text-anchor="middle" font-size="11" fill="#72243E" font-family="var(--font-sans,sans-serif)">Ensemble sum</text>
+      <text x="346" y="70" text-anchor="middle" font-size="10" fill="#993556" font-family="var(--font-sans,sans-serif)">T symmetric trees</text>
+      <line x1="406" y1="60" x2="464" y2="60" stroke="#D4537E" stroke-width="1" marker-end="url(#a3)"/>
+      <rect x="464" y="44" width="160" height="32" rx="6" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+      <text x="544" y="58" text-anchor="middle" font-size="11" fill="#712B13" font-family="var(--font-sans,sans-serif)">P(fraud)</text>
+      <text x="544" y="70" text-anchor="middle" font-size="10" fill="#993C1D" font-family="var(--font-sans,sans-serif)">fast lookup inference</text>
+    </svg>
+    <div class="section-label">Performance on Fraud Detection</div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-val">★★★</div><div class="stat-lbl">Accuracy</div></div>
+      <div class="stat-card"><div class="stat-val">★★★</div><div class="stat-lbl">Recall</div></div>
+      <div class="stat-card"><div class="stat-val">Medium</div><div class="stat-lbl">Train speed</div></div>
+      <div class="stat-card"><div class="stat-val">Fast</div><div class="stat-lbl">Inference</div></div>
+    </div>
+    <div class="section-label">Strengths vs Weaknesses</div>
+    <div class="grid2">
+      <div class="adv">✓ Best-in-class with categorical features (merchant, country, device)<br>✓ Minimal preprocessing required<br>✓ Ordered boosting avoids target leakage<br>✓ Very fast inference (symmetric trees)</div>
+      <div class="dis">✗ Slower training than LightGBM<br>✗ Higher memory for large feature sets<br>✗ Less community resources than XGBoost<br>✗ Tuning less intuitive than others</div>
+    </div>
+    <div class="fraud-note">⚠ Fraud context: Ideal when fraud data has many categorical features (merchant ID, transaction type, country, device fingerprint) with no manual encoding. The ordered boosting mechanism also reduces overfitting on small fraud datasets.</div>
+  </div>
+
+  <!-- LightGBM -->
+  <div class="panel" id="panel-lgbm">
+    <div class="model-header">
+      <div class="model-badge" style="background:#EEEDFE;color:#3C3489;">LGB</div>
+      <div><div class="model-title">LightGBM</div><div class="model-tagline">Leaf-wise gradient boosting with histogram binning — fastest at scale</div></div>
+    </div>
+    <div class="section-label">Structure</div>
+    <div class="struct-desc">
+      Uses <strong>leaf-wise</strong> (best-first) tree growth instead of level-wise: always splits the leaf with the highest loss reduction, producing deeper, more asymmetric trees. <strong>Gradient-based One-Side Sampling (GOSS)</strong> retains only high-gradient instances + random sample of low-gradient ones, drastically cutting data. <strong>Exclusive Feature Bundling (EFB)</strong> merges mutually exclusive sparse features, reducing dimensionality. Histogram binning quantizes continuous features.
+    </div>
+    <svg width="100%" viewBox="0 0 640 130" role="img"><title>LightGBM leaf-wise growth vs level-wise comparison</title>
+      <defs><marker id="a4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <text x="170" y="16" text-anchor="middle" font-size="11" fill="#888780" font-family="var(--font-sans,sans-serif)">Level-wise (XGB/RF)</text>
+      <rect x="140" y="22" width="60" height="22" rx="4" fill="#D3D1C7" stroke="#888780" stroke-width="0.5"/>
+      <text x="170" y="37" text-anchor="middle" font-size="10" fill="#5F5E5A" font-family="var(--font-sans,sans-serif)">Root</text>
+      <line x1="155" y1="44" x2="115" y2="54" stroke="#888780" stroke-width="0.5" marker-end="url(#a4)"/>
+      <line x1="185" y1="44" x2="225" y2="54" stroke="#888780" stroke-width="0.5" marker-end="url(#a4)"/>
+      <rect x="90" y="54" width="50" height="18" rx="3" fill="#D3D1C7" stroke="#888780" stroke-width="0.5"/>
+      <rect x="200" y="54" width="50" height="18" rx="3" fill="#D3D1C7" stroke="#888780" stroke-width="0.5"/>
+      <text x="115" y="67" text-anchor="middle" font-size="9" fill="#5F5E5A" font-family="var(--font-sans,sans-serif)">L</text>
+      <text x="225" y="67" text-anchor="middle" font-size="9" fill="#5F5E5A" font-family="var(--font-sans,sans-serif)">R</text>
+      <line x1="100" y1="72" x2="82" y2="82" stroke="#888780" stroke-width="0.5" marker-end="url(#a4)"/>
+      <line x1="130" y1="72" x2="148" y2="82" stroke="#888780" stroke-width="0.5" marker-end="url(#a4)"/>
+      <line x1="210" y1="72" x2="192" y2="82" stroke="#888780" stroke-width="0.5" marker-end="url(#a4)"/>
+      <line x1="240" y1="72" x2="258" y2="82" stroke="#888780" stroke-width="0.5" marker-end="url(#a4)"/>
+      <rect x="68" y="82" width="30" height="14" rx="2" fill="#D3D1C7" stroke="#888780" stroke-width="0.5"/>
+      <rect x="135" y="82" width="30" height="14" rx="2" fill="#D3D1C7" stroke="#888780" stroke-width="0.5"/>
+      <rect x="178" y="82" width="30" height="14" rx="2" fill="#D3D1C7" stroke="#888780" stroke-width="0.5"/>
+      <rect x="245" y="82" width="30" height="14" rx="2" fill="#D3D1C7" stroke="#888780" stroke-width="0.5"/>
+      <text x="400" y="16" text-anchor="middle" font-size="11" fill="#534AB7" font-family="var(--font-sans,sans-serif)">Leaf-wise (LightGBM)</text>
+      <rect x="370" y="22" width="60" height="22" rx="4" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+      <text x="400" y="37" text-anchor="middle" font-size="10" fill="#3C3489" font-family="var(--font-sans,sans-serif)">Root</text>
+      <line x1="385" y1="44" x2="345" y2="54" stroke="#534AB7" stroke-width="0.5" marker-end="url(#a4)"/>
+      <line x1="415" y1="44" x2="455" y2="54" stroke="#534AB7" stroke-width="0.5" marker-end="url(#a4)"/>
+      <rect x="320" y="54" width="50" height="18" rx="3" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+      <rect x="425" y="54" width="60" height="18" rx="3" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+      <text x="345" y="67" text-anchor="middle" font-size="9" fill="#3C3489" font-family="var(--font-sans,sans-serif)">L</text>
+      <text x="455" y="67" text-anchor="middle" font-size="9" fill="#3C3489" font-family="var(--font-sans,sans-serif)">R (max loss↓)</text>
+      <line x1="460" y1="72" x2="448" y2="82" stroke="#534AB7" stroke-width="1.5" marker-end="url(#a4)"/>
+      <rect x="428" y="82" width="60" height="18" rx="3" fill="#AFA9EC" stroke="#534AB7" stroke-width="0.5"/>
+      <text x="458" y="95" text-anchor="middle" font-size="9" fill="#26215C" font-family="var(--font-sans,sans-serif)">Best leaf split</text>
+      <line x1="448" y1="100" x2="430" y2="110" stroke="#534AB7" stroke-width="1.5" marker-end="url(#a4)"/>
+      <rect x="405" y="110" width="55" height="14" rx="2" fill="#AFA9EC" stroke="#534AB7" stroke-width="0.5"/>
+      <text x="432" y="121" text-anchor="middle" font-size="9" fill="#26215C" font-family="var(--font-sans,sans-serif)">deeper split</text>
+    </svg>
+    <div class="section-label">Performance on Fraud Detection</div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-val">★★★</div><div class="stat-lbl">Accuracy</div></div>
+      <div class="stat-card"><div class="stat-val">★★★</div><div class="stat-lbl">AUC-ROC</div></div>
+      <div class="stat-card"><div class="stat-val">Fastest</div><div class="stat-lbl">Train speed</div></div>
+      <div class="stat-card"><div class="stat-val">Medium</div><div class="stat-lbl">Interpretability</div></div>
+    </div>
+    <div class="section-label">Strengths vs Weaknesses</div>
+    <div class="grid2">
+      <div class="adv">✓ Fastest training (GOSS + histogram)<br>✓ Handles millions of transactions<br>✓ Low memory footprint<br>✓ is_unbalance / scale_pos_weight flags<br>✓ SHAP support for explainability</div>
+      <div class="dis">✗ Prone to overfitting on small datasets<br>✗ Leaf-wise growth harder to control<br>✗ Less robust than XGBoost with noisy data<br>✗ Categorical support less polished than CatBoost</div>
+    </div>
+    <div class="fraud-note">⚠ Fraud context: The go-to choice for high-volume real-time fraud detection (millions of transactions/day). GOSS means you can train on the full dataset without sampling. Use num_leaves carefully — fraud patterns can be subtle and deep trees risk overfitting minority class.</div>
+  </div>
+
+  <!-- Compare All -->
+  <div class="panel" id="panel-cmp">
+    <div class="section-label" style="margin-top:0">Model comparison — online payment fraud detection</div>
+    <div class="compare-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Criterion</th>
+            <th>Logistic Reg.</th>
+            <th>Random Forest</th>
+            <th>XGBoost</th>
+            <th>CatBoost</th>
+            <th>LightGBM</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Structure</strong></td><td>Linear model, sigmoid</td><td>Parallel bagged trees</td><td>Sequential boosted trees (2nd order)</td><td>Sequential symmetric trees</td><td>Leaf-wise boosted trees</td></tr>
+          <tr><td><strong>AUC-ROC (fraud)</strong></td><td>~0.80–0.85</td><td>~0.90–0.94</td><td class="winner">~0.95–0.98</td><td class="winner">~0.95–0.98</td><td class="winner">~0.95–0.98</td></tr>
+          <tr><td><strong>Precision-Recall</strong></td><td>Low recall</td><td>Good</td><td>Excellent</td><td>Excellent</td><td class="winner">Excellent</td></tr>
+          <tr><td><strong>Training speed</strong></td><td class="winner">Fastest</td><td>Slow (many trees)</td><td>Medium</td><td>Medium-slow</td><td class="winner">Fastest boosting</td></tr>
+          <tr><td><strong>Inference speed</strong></td><td class="winner">Fastest</td><td>Slow</td><td>Fast</td><td class="winner">Fastest (lookup)</td><td>Fast</td></tr>
+          <tr><td><strong>Class imbalance</strong></td><td>Poor (needs SMOTE)</td><td>class_weight</td><td>scale_pos_weight</td><td>class_weights</td><td>is_unbalance</td></tr>
+          <tr><td><strong>Categorical features</strong></td><td>Manual encoding</td><td>Manual encoding</td><td>Manual encoding</td><td class="winner">Native (no encoding)</td><td>Partial native</td></tr>
+          <tr><td><strong>Missing values</strong></td><td>Manual imputation</td><td>Native</td><td class="winner">Native</td><td class="winner">Native</td><td class="winner">Native</td></tr>
+          <tr><td><strong>Overfitting risk</strong></td><td>Low (regularized)</td><td>Low</td><td>Low (λ, α regs)</td><td>Very low (ordered boosting)</td><td>Medium (leaf-wise)</td></tr>
+          <tr><td><strong>Explainability</strong></td><td class="winner">High (coefficients)</td><td>Medium (feat. importance)</td><td>Medium (SHAP)</td><td>Medium (SHAP)</td><td>Medium (SHAP)</td></tr>
+          <tr><td><strong>Memory usage</strong></td><td class="winner">Minimal</td><td>High</td><td>Medium-high</td><td>Medium-high</td><td class="winner">Low (histogram)</td></tr>
+          <tr><td><strong>Best for fraud when…</strong></td><td>Audit/compliance needed</td><td>Balanced + explainability</td><td>Max accuracy, tuned pipeline</td><td>Rich categorical features</td><td>High-volume real-time</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <hr class="divider">
+    <div class="section-label">Fraud-specific metric scores (relative)</div>
+    <div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:10px">Approximate relative performance on typical imbalanced fraud datasets</div>
+    <div style="margin-bottom:1.5rem">
+      <div class="bar-row"><div class="bar-label"><span>LightGBM</span><span>97</span></div><div class="bar-track"><div class="bar-fill" style="width:97%;background:#7F77DD"></div></div></div>
+      <div class="bar-row"><div class="bar-label"><span>XGBoost</span><span>96</span></div><div class="bar-track"><div class="bar-fill" style="width:96%;background:#EF9F27"></div></div></div>
+      <div class="bar-row"><div class="bar-label"><span>CatBoost</span><span>95</span></div><div class="bar-track"><div class="bar-fill" style="width:95%;background:#D4537E"></div></div></div>
+      <div class="bar-row"><div class="bar-label"><span>Random Forest</span><span>90</span></div><div class="bar-track"><div class="bar-fill" style="width:90%;background:#639922"></div></div></div>
+      <div class="bar-row"><div class="bar-label"><span>Logistic Regression</span><span>72</span></div><div class="bar-track"><div class="bar-fill" style="width:72%;background:#378ADD"></div></div></div>
+    </div>
+    <div class="section-label">Recommended decision tree</div>
+    <div class="grid2">
+      <div class="adv">Use <strong>LightGBM</strong> → millions of transactions/day, speed is critical, real-time scoring needed</div>
+      <div class="adv">Use <strong>XGBoost</strong> → maximum accuracy with tuning time, need robust well-tested pipeline</div>
+    </div>
+    <div style="height:10px"></div>
+    <div class="grid2">
+      <div class="adv">Use <strong>CatBoost</strong> → many categorical fields (merchant, device, country), minimal preprocessing budget</div>
+      <div class="adv">Use <strong>Logistic Reg.</strong> → regulatory audit, need weight-level explanation for each decision</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Tab switching: click + keyboard (ArrowLeft/Right, Home, End, Enter/Space)
+   Wrapped in DOMContentLoaded to avoid timing issues when using live server. */
+document.addEventListener('DOMContentLoaded', function(){
+  try {
+    const tabs = Array.from(document.querySelectorAll('.tab'));
+    if (!tabs.length) return;
+    const panels = Array.from(document.querySelectorAll('.panel'));
+
+    function activate(tab){
+      const id = tab.dataset.target;
+      panels.forEach(p => p.classList.remove('active'));
+      tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
+      const panel = document.getElementById('panel-' + id);
+      if(panel) panel.classList.add('active');
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected','true');
+      tab.focus();
+    }
+
+    tabs.forEach((tab, idx) => {
+      tab.addEventListener('click', () => activate(tab));
+      tab.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') { tabs[(idx + 1) % tabs.length].focus(); }
+        if (e.key === 'ArrowLeft') { tabs[(idx - 1 + tabs.length) % tabs.length].focus(); }
+        if (e.key === 'Home') { tabs[0].focus(); }
+        if (e.key === 'End') { tabs[tabs.length - 1].focus(); }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(tab); }
+      });
+    });
+
+    // Initialize: ensure one tab/panel is active
+    const initial = document.querySelector('.tab.active') || tabs[0];
+    if (initial) activate(initial);
+  } catch (err) {
+    console.error('Tab init failed', err);
+  }
+});
+</script>

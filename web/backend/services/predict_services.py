@@ -29,9 +29,9 @@ class PredictService:
             X_ready = preprocessing.prepare_for_model(df_enriched)
 
             # TODO: làm sau khi xong frontend
-            logger.info(f"Push data into LightGBM Models")
+            logger.info(f"Push data into Random Forest Models")
 
-            model = ml_manager.models.get("LightGBM")
+            model = ml_manager.models.get("Random_Forest")
             if not model:
                 raise ValueError(f"Not Found Models")
 
@@ -76,10 +76,15 @@ class PredictService:
                     logger.warning(f"Model '{m_name}' is not loaded")
                     continue
                 
-                is_fraud = int(model.predict(X_ready)[0])
+                if m_name in ["Random_Forest", "Logistic_Regression_SGD"]:
+                    X_array = X_ready.values
+                else:
+                    X_array = X_ready
+                
+                is_fraud = int(model.predict(X_array)[0])
 
                 try:
-                    prob = float(model.predict_prob(X_ready)[0][1])
+                    prob = float(model.predict_prob(X_array)[0][1])
                 except AttributeError:
                     prob = float(is_fraud)
 

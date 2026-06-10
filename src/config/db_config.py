@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from src.config.logs_config import setup_log, auto_logger
 
-logger = setup_log(name="DB_Config", filename="app")
+logger = setup_log(name="DB_Config", filename="DataBase")
 
 load_dotenv()
 

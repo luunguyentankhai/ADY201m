@@ -2,7 +2,7 @@ from sqlalchemy import text
 from src.config.db_config import db_engine
 from src.config.logs_config import setup_log,auto_logger
 
-logger = setup_log(name="PostgresManager", filename="app")
+logger = setup_log(name="PostgresManager", filename="DataBase")
 
 class PostgresManager:
     def __init__(self):

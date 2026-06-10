@@ -17,7 +17,6 @@ class Preprocessing:
             'oldbalanceDest': 'oldbalance_dest',
             'newbalanceDest': 'newbalance_dest',
             'isFraud': 'is_fraud',
-            'isFlaggedFraud': 'isflaggedfraud'
         }
 
         df = df.rename(columns=rename_map)
@@ -73,11 +72,7 @@ class Preprocessing:
 
     def prepare_for_model(self, df: pd.DataFrame) -> pd.DataFrame:
 
-        df_model = df.copy()
-
-        df_model['is_amount_zero'] = (df_model.get('amount', 0) == 0).astype(int)
-        df_model['is_orig_empty_after'] = (df_model.get('newbalance_orig', 0) == 0).astype(int)
-        df_model['is_dest_empty_before'] = (df_model.get('oldbalance_dest', 0) == 0).astype(int)
+        df_model = df.copy() 
 
         if 'type' in df_model.columns:
             df_model['type_cash_out'] = (df_model['type'] == 'CASH_OUT').astype(int)

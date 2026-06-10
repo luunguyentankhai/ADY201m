@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler
 from src.config.dir_config import Models_Dir
 from src.config.logs_config import setup_log, auto_logger
 
-logger = setup_log(name="Data_Preprocessing", filename="app")
+logger = setup_log(name="Data_Preprocessing", filename="Models")
 
 class DataSplitter:
     def __init__(self, target_col='is_fraud', random_state=42):

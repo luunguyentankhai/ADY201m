@@ -4,7 +4,7 @@ from src.etl.cleaner import DataCleaner
 from src.config.logs_config import setup_log, auto_logger
 from src.db.init_db import initialize_and_seed
 
-logger = setup_log(name="Main_Pipeline", filename="app")
+logger = setup_log(name="Main_Pipeline", filename="data")
 
 class DataPipeline:    
     @auto_logger(logger)

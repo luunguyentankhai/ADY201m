@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS fraud_detection;
+DROP TABLE IF EXISTS fraud_detection CASCADE;
 CREATE TABLE fraud_detection (
     id BIGSERIAL PRIMARY KEY,
     
@@ -14,16 +14,8 @@ CREATE TABLE fraud_detection (
     oldbalance_dest NUMERIC(15, 2),
     newbalance_dest NUMERIC(15, 2),
     
-    is_fraud INTEGER CHECK (is_fraud IN (0, 1)),
+    is_fraud INTEGER CHECK (is_fraud IN (0, 1)),   
     
-    isflaggedfraud INTEGER CHECK (isflaggedfraud IN (0, 1)),
-    
-    hour_of_day INTEGER GENERATED ALWAYS AS (MOD(step, 24)) STORED,
-    day_of_month INTEGER GENERATED ALWAYS AS ((step / 24) + 1) STORED
+    hour_of_day INTEGER GENERATED ALWAYS AS (MOD(step, 24)) STORED
 );
 
-CREATE INDEX idx_transactions_type ON fraud_detection(type);
-CREATE INDEX idx_transactions_name_dest ON fraud_detection(name_dest);
-CREATE INDEX idx_transactions_is_fraud ON fraud_detection(is_fraud);
-
--- query xác định tài khoản giao dịch nào là gian lận

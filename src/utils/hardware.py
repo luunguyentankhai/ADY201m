@@ -1,11 +1,7 @@
 import time
 import gc
 from sklearn.linear_model import SGDClassifier
-from sklearn.ensemble import (
-        RandomForestClassifier,
-        ExtraTreesClassifier,
-        HistGradientBoostingClassifier
-        )
+from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
@@ -28,18 +24,6 @@ def hardware_optimized_models(imbalance_ratio, use_gpu=False):
                 n_estimators=200, 
                 class_weight='balanced', 
                 n_jobs=-1, 
-                random_state=42),
-            "Extra Trees": ExtraTreesClassifier(
-                n_estimators=200, 
-                class_weight='balanced', 
-                n_jobs=-1, 
-                random_state=42),
-            "HistGradientBoosting": HistGradientBoostingClassifier(
-                learning_rate=0.1, 
-                max_iter=200, 
-                max_depth=10, 
-                min_samples_leaf=20, 
-                l2_regularization=1.0, 
                 random_state=42)
             }
 
@@ -84,6 +68,7 @@ def hardware_optimized_models(imbalance_ratio, use_gpu=False):
                 colsample_bytree=0.8,
                 scale_pos_weight=10,
                 random_state=42,
+                eval_metric='logloss',
                 n_jobs=-1),
             "LightGBM": LGBMClassifier(
                 n_estimators=200,
@@ -93,12 +78,14 @@ def hardware_optimized_models(imbalance_ratio, use_gpu=False):
                 subsample=0.8,
                 colsample_bytree=0.8,
                 class_weight='balanced',
+                objective='binary',
                 random_state=42,
                 n_jobs=-1),
             "CatBoost": CatBoostClassifier(
                 iterations=200,
                 depth=6,
                 auto_class_weights='Balanced',
+                eval_metric='AUC',
                 thread_count=-1,
                 verbose=0,
                 random_seed=42) # Ép depth=6 để chống treo máy

@@ -3,7 +3,7 @@ import numpy as np
 from src.config.logs_config import setup_log, auto_logger
 from src.config.dir_config import Root_Data_File, Process_Dir
 
-logger = setup_log(name="Data_Cleaner", filename="app")
+logger = setup_log(name="Data_Cleaner", filename="data")
 
 class DataCleaner:
     def __init__(self, chunk_size=100000):
@@ -22,8 +22,7 @@ class DataCleaner:
             'nameDest': 'name_dest',
             'oldbalanceDest': 'oldbalance_dest',
             'newbalanceDest': 'newbalance_dest',
-            'isFraud': 'is_fraud',
-            'isFlaggedFraud': 'isflaggedfraud'
+            'isFraud': 'is_fraud'
         }
         df = df.rename(columns=rename_map)
         df.columns = df.columns.str.lower()

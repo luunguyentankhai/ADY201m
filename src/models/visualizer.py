@@ -77,5 +77,5 @@ class ModelVisualizer:
         csv_path = Process_Dir / save_name
         df_results.to_csv(csv_path, index=False)
         
-        logger.info(f"Đã xuất thành công bảng điểm 7 mô hình ra file: {csv_path}")
+        logger.info(f"Đã xuất thành công bảng điểm mô hình ra file: {csv_path}")
         return df_results

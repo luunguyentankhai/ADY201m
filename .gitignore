@@ -34,3 +34,6 @@ web/frontend/dist/
 web/frontend/build/
 npm-debug.log*
 pnpm-debug.log*
+
+# Copy file
+*copy*

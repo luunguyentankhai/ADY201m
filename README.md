@@ -1,8 +1,8 @@
 # Fraud Detection in Online Payment Transactions
 
-## NOTE
+## INTRODUCTION
 
-- All team members must log the completion time of each task into the `notes.md` file inside the `docs/` folder immediately upon finishing
+
 
 ## SPEC
 
@@ -13,90 +13,6 @@
     - docker
     - pnpm
     - vite
-
-## FOLDER STRUCTURE
-```
-.
-├── CONTRIBUTING.md
-├── data <-- Data storage directory (Git-ignored to optimize repository size)
-│   ├── processed <-- Processed data, evaluation charts, and output artifacts
-│   │   ├── 7_models_benchmark.csv
-│   │   ├── Assets 
-│   │   │   ├── dist_log_amount.png
-│   │   │   ├── ...
-│   │   ├── Cleaned_Data.csv
-│   │   ├── LightGBM_Feature_Importance.csv
-│   │   └── Models <-- Storage for trained Machine Learning models (.pkl)
-│   │       ├── CatBoost.pkl
-│   │       ├── ...
-│   └── raw <-- Original raw data
-│       └── Data.csv
-├── docker-compose.yml
-├── docs <-- Project documentation directory
-│   └── notes.md
-├── logs <-- System runtime logs
-│   ├── app.log
-│   ├── DataBase.log
-│   ├── Models.log
-│   └── utils.log
-├── main_pipeline.py
-├── notebooks <-- Jupyter Notebooks for research and experimentation
-│   ├── 01_pull_and_push.ipynb
-│   ├── ...
-├── preprocessing <-- Documentation and reports related to data cleaning
-│   ├── data_cleaning.ipynb
-│   ├── ...
-├── pyproject.toml
-├── README.md
-├── src <-- Main source code directory (Core AI Engine)
-│   ├── config <-- System configuration variables and path settings
-│   │   ├── db_config.py
-│   │   ├── ...
-│   ├── db <-- Database connections, management, and operations
-│   │   ├── analyzer.py
-│   │   ├── ...
-│   │   ├── sql_queries <-- Directory containing SQL query files (.sql)
-│   │   │   ├── get_anomalies.sql
-│   │   │   ├── ...
-│   ├── eda <-- Scripts for automated Exploratory Data Analysis
-│   │   ├── distribution_plt.py
-│   │   ├── ...
-│   ├── etl <-- Extract, Transform, Load processes (Data pipeline)
-│   │   ├── cleaner.py
-│   │   ├── ...
-│   ├── models <-- Model training, optimization, and evaluation
-│   │   ├── evaluator.py
-│   │   ├── ...
-│   └── utils <-- Shared utility functions for the system
-│       ├── file_helpers.py
-│       ├── ...
-├── start_app.py 
-├── uv.lock
-└── web <-- Full-stack web application directory
-    ├── backend <-- API server system (FastAPI)
-    └── frontend <-- User interface system (React/Vite)
-        ├── eslint.config.js
-        ├── index.html 
-        ├── package.json 
-        ├── pnpm-lock.yaml
-        ├── public <-- Static assets directory
-        │   ├── favicon.svg 
-        │   └── icons.svg
-        ├── README.md 
-        ├── src <-- Main user interface source code
-        │   ├── App.css 
-        │   ├── App.tsx 
-        │   ├── assets <-- Images and resources used directly in the UI
-        │   │   ├── hero.png
-        │   │   ├── react.svg 
-        │   │   └── vite.svg 
-        │   ├── index.css 
-        │   └── main.tsx 
-        ├── tsconfig.app.json
-        ├── tsconfig.json
-        ├── tsconfig.node.json
-        └── vite.config.ts
-```
 
 ## SETUP REQUIREMENT
 
@@ -112,5 +28,64 @@
 - Install **node.js** to install ***pnpm*** using command for install `npm install pnpm`
 - After install ***pnpm*** moving to folder frontend and run `pnpm install`
 - For run website localhost using `pnpm run dev`
+
+## HOW TO RUN
+
+- Training Models:
+    - Create `.env`(you can see example in `.env.example`) file and run `docker compose up -d`
+    - Run `notebooks/01_pull_and_push.ipynb` and wait to data push into database
+    - Where data pushed into database, moving to folder **sql_queries/** `cd src/db/sql_queries/`. On **sql_queries** folder using command:
+
+        *(Note: If you run this command before, you do need to run this command again)*
+
+        ```docker exec -i <contanier_name> psql -U <POSTGRES_USER> -d <POSTGRES_DB> < "get_feature.sql"```
+
+    - After that, run `main_pipeline.py` to start training models
+
+- Website (for running website you have 2 option):
+    - Option 1: If you just want to run web and don't need to see log, you just run `uv run run_dev.py`
+    - Option 2: For wanting see logs you need to move frontend folder `cd web/frontend` and use `pnpm run dev` - don't use `npm run dev` if you don't want many trash on machine. After that, for seeing backend logs run other shell and call `uv run start_app.py`
+
+
+## FOLDER STRUCTURE
+```
+.
+├── data
+│   ├── processed
+│   │   ├── Assets
+│   │   └── Models
+│   └── raw
+├── docs
+├── notebooks
+├── preprocessing
+├── src
+│   ├── config
+│   ├── db
+│   │   └── sql_queries
+│   ├── eda
+│   ├── etl
+│   ├── models
+│   └── utils
+└── web
+    ├── backend
+    │   ├── config
+    │   ├── controllers
+    │   ├── core
+    │   ├── middleware
+    │   ├── models
+    │   ├── routes
+    │   └── services
+    └── frontend
+        └── src
+            ├── api
+            ├── assets
+            ├── components
+            ├── services
+            ├── types
+            └── utils
+
+34 directories
+```
+
 
 

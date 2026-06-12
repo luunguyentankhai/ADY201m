@@ -2,7 +2,7 @@
 
 ## INTRODUCTION
 
-- A machine learning-based fraud detection system that leverages domain-specific feature engineering and LightGBM to identify fraudulent financial transactions in the PaySim dataset.
+A machine learning-based fraud detection system that leverages domain-specific feature engineering and LightGBM to identify fraudulent financial transactions in the PaySim dataset.
 
 ## SPEC
 

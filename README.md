@@ -4,80 +4,107 @@
 
 A machine learning-based fraud detection system that leverages domain-specific feature engineering and LightGBM to identify fraudulent financial transactions in the PaySim dataset.
 
-## SPEC
+## TECH STACK & TOOLS
 
-- Project using python version 3.11, postgresql:15 - for website project using react + ts
+- **Backend:** Python 3.11, PostgreSQL 15
+- **Frontend:** React + TypeScript
+- **Tools & Package Managers:**
+  - `uv` (Python dependency manager)
+  - Docker
+  - `pnpm` (Node package manager)
+  - Vite
 
-- Project Manager:
-  - uv python
-  - docker
-  - pnpm
-  - vite
-
-## SETUP REQUIREMENT
+## SETUP REQUIREMENTS
 
 #### Python
-
-- Actually you have **uv**
-- Run `uv sync` to install python libs
+- Ensure you have **`uv`** installed.
+- Run `uv sync` to install Python dependencies.
 
 #### Docker
-
-- Remember to create .env file to run docker-compose.yml
-- For run **Docker** using `docker compose up -d`
+- Create a `.env` file (you can use `.env.example` as a template) for Docker configuration.
+- Start Docker services by running: `docker compose up -d`
 
 #### Web
-
-- Install **node.js** to install **_pnpm_** using command for install `npm install pnpm`
-- After install **_pnpm_** moving to folder frontend and run `pnpm install`
-- For run website localhost using `pnpm run dev`
+- Ensure **Node.js** is installed.
+- Install **pnpm** globally by running: `npm install -g pnpm`
+- Navigate to the frontend folder and install dependencies:
+  ```bash
+  cd web/frontend
+  pnpm install
+  ```
 
 ## HOW TO RUN
 
-- Training Models:
-  - Create `.env`(you can see example in `.env.example`) file and run `docker compose up -d`
-  - Run `notebooks/01_pull_and_push.ipynb` and wait to data push into database
-  - Where data pushed into database, moving to folder **sql_queries/** `cd src/db/sql_queries/`. On **sql_queries** folder using command:
+### Training Models
+1. Ensure your `.env` file is set up and start the database:
+   ```bash
+   docker compose up -d
+   ```
+2. Run the notebook `notebooks/01_pull_and_push.ipynb` and wait for the data to be pushed into the database.
+3. Once the data is successfully pushed, navigate to the `sql_queries` folder:
+   ```bash
+   cd src/db/sql_queries/
+   ```
+4. Execute the following command to extract features:
+   *(Note: If you have already run this command before, you do NOT need to run it again.)*
+   ```bash
+   docker exec -i <container_name> psql -U <POSTGRES_USER> -d <POSTGRES_DB> < "get_feature.sql"
+   ```
+5. After that, run the main pipeline to start training the models:
+   ```bash
+   uv run src/main_pipeline.py
+   ```
 
-    _(Note: If you run this command before, you do need to run this command again)_
+### Website Development Server
+You have two options for running the web application:
 
-    `docker exec -i <contanier_name> psql -U <POSTGRES_USER> -d <POSTGRES_DB> < "get_feature.sql"`
+**Option 1: Single Terminal (No backend logs)**
+If you just want to run the application quickly without monitoring the backend logs, simply run:
+```bash
+uv run run_dev.py
+```
 
-  - After that, run `main_pipeline.py` to start training models
-
-- Website (for running website you have 2 option):
-  - Option 1: If you just want to run web and don't need to see log, you just run `uv run run_dev.py`
-  - Option 2: For wanting see logs you need to move frontend folder `cd web/frontend` and use `pnpm run dev` - don't use `npm run dev` if you don't want many trash on machine. After that, for seeing backend logs run other shell and call `uv run start_app.py`
+**Option 2: Two Terminals (View frontend & backend logs separately)**
+To monitor logs effectively, run the frontend and backend in separate terminals:
+- **Terminal 1 (Frontend):** Navigate to `web/frontend` and start the Vite dev server using `pnpm` (it is highly recommended to use `pnpm` instead of `npm` to avoid bloating your local environment):
+  ```bash
+  cd web/frontend
+  pnpm run dev
+  ```
+- **Terminal 2 (Backend):** Open a new shell, ensure you are in the root directory, and start the backend application:
+  ```bash
+  uv run start_app.py
+  ```
 
 ## FOLDER STRUCTURE
 
-```
+```text
 .
 ├── data
-│   ├── processed
-│   │   ├── Assets
-│   │   └── Models
-│   └── raw
+│   ├── processed
+│   │   ├── Assets
+│   │   └── Models
+│   └── raw
 ├── docs
 ├── notebooks
 ├── preprocessing
 ├── src
-│   ├── config
-│   ├── db
-│   │   └── sql_queries
-│   ├── eda
-│   ├── etl
-│   ├── models
-│   └── utils
+│   ├── config
+│   ├── db
+│   │   └── sql_queries
+│   ├── eda
+│   ├── etl
+│   ├── models
+│   └── utils
 └── web
     ├── backend
-    │   ├── config
-    │   ├── controllers
-    │   ├── core
-    │   ├── middleware
-    │   ├── models
-    │   ├── routes
-    │   └── services
+    │   ├── config
+    │   ├── controllers
+    │   ├── core
+    │   ├── middleware
+    │   ├── models
+    │   ├── routes
+    │   └── services
     └── frontend
         └── src
             ├── api

@@ -17,14 +17,17 @@ A machine learning-based fraud detection system that leverages domain-specific f
 ## SETUP REQUIREMENTS
 
 #### Python
+
 - Ensure you have **`uv`** installed.
 - Run `uv sync` to install Python dependencies.
 
 #### Docker
+
 - Create a `.env` file (you can use `.env.example` as a template) for Docker configuration.
 - Start Docker services by running: `docker compose up -d`
 
 #### Web
+
 - Ensure **Node.js** is installed.
 - Install **pnpm** globally by running: `npm install -g pnpm`
 - Navigate to the frontend folder and install dependencies:
@@ -36,17 +39,18 @@ A machine learning-based fraud detection system that leverages domain-specific f
 ## HOW TO RUN
 
 ### Training Models
+
 1. Ensure your `.env` file is set up and start the database:
    ```bash
    docker compose up -d
    ```
-2. Run the notebook `notebooks/01_pull_and_push.ipynb` and wait for the data to be pushed into the database.
+2. Run the notebook `notebooks/01_pull_and_push.ipynb` and wait for the data to be pushed into the database. _(Note: if you don't want data base just run the first to save data on your local)_
 3. Once the data is successfully pushed, navigate to the `sql_queries` folder:
    ```bash
    cd src/db/sql_queries/
    ```
 4. Execute the following command to extract features:
-   *(Note: If you have already run this command before, you do NOT need to run it again.)*
+   _(Note: If you have already run this command before, you do NOT need to run it again.)_
    ```bash
    docker exec -i <container_name> psql -U <POSTGRES_USER> -d <POSTGRES_DB> < "get_feature.sql"
    ```
@@ -56,16 +60,19 @@ A machine learning-based fraud detection system that leverages domain-specific f
    ```
 
 ### Website Development Server
+
 You have two options for running the web application:
 
 **Option 1: Single Terminal (No backend logs)**
 If you just want to run the application quickly without monitoring the backend logs, simply run:
+
 ```bash
 uv run run_dev.py
 ```
 
 **Option 2: Two Terminals (View frontend & backend logs separately)**
 To monitor logs effectively, run the frontend and backend in separate terminals:
+
 - **Terminal 1 (Frontend):** Navigate to `web/frontend` and start the Vite dev server using `pnpm` (it is highly recommended to use `pnpm` instead of `npm` to avoid bloating your local environment):
   ```bash
   cd web/frontend

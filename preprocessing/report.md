@@ -132,9 +132,9 @@ Fraudsters appear to prioritize transaction success probability rather than stea
 
 The feature:
 
-$$
-\mathtt{hour\_of\_day} = step \bmod 24
-$$
+
+													   hour_of_day = step mod 24
+
 
 was created to extract the hour from the `step` feature.
 
@@ -153,30 +153,24 @@ rather than specific calendar dates.
 ### Sender Balance Error
 
 $$
-errorBalanceOrig
-=
-newbalanceOrig + amount - oldbalanceOrg
+errorBalanceOrig = newbalanceOrig + amount - oldbalanceOrg
 $$
 
 For a valid transaction:
 
 	errorBalanceOrig = 0
 
-
 ---
 
 ### Receiver Balance Error
 
 $$
-errorBalanceDest
-=
-oldbalanceDest + amount - newbalanceDest
+errorBalanceDest = oldbalanceDest + amount - newbalanceDest
 $$
 
 For a valid transaction:
 
 	errorBalanceDest = 0
-
 
 ---
 

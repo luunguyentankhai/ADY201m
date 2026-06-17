@@ -44,7 +44,9 @@ A machine learning-based fraud detection system that leverages domain-specific f
    ```bash
    docker compose up -d
    ```
-2. Run the notebook `notebooks/01_pull_and_push.ipynb` and wait for the data to be pushed into the database. _(Note: if you don't want data base just run the first to save data on your local)_
+2. Run the notebook `notebooks/01_pull_and_push.ipynb` and wait for the data to be pushed into the database.
+   _(Note: if you don't want database just run the first to save data on your local)_
+
 3. Once the data is successfully pushed, navigate to the `sql_queries` folder:
    ```bash
    cd src/db/sql_queries/

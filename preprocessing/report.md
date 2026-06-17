@@ -133,7 +133,7 @@ Fraudsters appear to prioritize transaction success probability rather than stea
 The feature:
 
 $$
-\text{hour\_of\_day} = step \bmod 24
+\mathtt{hour\_of\_day} = step \bmod 24
 $$
 
 was created to extract the hour from the `step` feature.

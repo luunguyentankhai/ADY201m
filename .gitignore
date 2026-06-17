@@ -37,3 +37,6 @@ pnpm-debug.log*
 
 # Copy file
 *copy*
+
+# Other
+.obsidian/
